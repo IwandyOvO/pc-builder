@@ -17,6 +17,7 @@ const STYLES = {
   balanced: "Balanced",
   performance: "Best Performance",
   value: "Best Value",
+  flagship: "High-End / Flagship",
   amd: "AMD Build",
   intel: "Intel CPU Build",
   nvidia: "NVIDIA GPU Build",
@@ -150,6 +151,71 @@ function isAllowedByStyle(cpu, gpu, style) {
   return true;
 }
 
+function getCpuUpgradePriority(cpu, purpose) {
+  if (purpose === "gaming1440p" || purpose === "gaming4k") {
+    if (cpu.name.includes("Ryzen 9 7950X3D")) return 100;
+    if (cpu.name.includes("Core i9")) return 96;
+    if (cpu.name.includes("Ryzen 9 7900X")) return 92;
+    if (cpu.name.includes("Ryzen 7 7800X3D")) return 88;
+  }
+
+  if (purpose === "creator" || purpose === "ai" || purpose === "streaming") {
+    if (cpu.name.includes("Core i9")) return 100;
+    if (cpu.name.includes("Ryzen 9 7950X3D")) return 98;
+    if (cpu.name.includes("Ryzen 9 7900X")) return 95;
+    if (cpu.name.includes("Core i7")) return 88;
+  }
+
+  return cpu.gaming + cpu.productivity * 0.25;
+}
+
+function upgradeBuildCpu(build, budget, purpose, style) {
+  const remainingBudget = budget - build.total;
+  const gpuIsStrongEnough = build.gpu.price >= 570 || build.gpu.gaming1440p >= 88 || build.gpu.gaming4k >= 73;
+  const shouldUpgradeCpu = budget >= 2200 && remainingBudget >= 120 && gpuIsStrongEnough;
+
+  if (!shouldUpgradeCpu) return build;
+  if (style === "value") return build;
+
+  const currentMotherboard = build.motherboard;
+  const currentRam = build.ram;
+  const currentCooler = build.cooler;
+
+  const upgradeOptions = cpus
+    .filter((cpu) => {
+      if (style === "amd" && cpu.brand !== "AMD") return false;
+      if (style === "intel" && cpu.brand !== "Intel") return false;
+      if (style === "flagship" && !isFlagshipCpu(cpu)) return false;
+      return isFlagshipCpu(cpu) || cpu.name.includes("Core i7") || cpu.name.includes("Ryzen 7");
+    })
+    .map((cpu) => {
+      const motherboard = chooseMotherboard(cpu);
+      const ram = chooseRam(cpu, purpose, budget);
+      const cooler = chooseCooler(cpu, budget);
+      const newTotal = build.total - build.cpu.price - currentMotherboard.price - currentRam.price - currentCooler.price + cpu.price + motherboard.price + ram.price + cooler.price;
+      return { cpu, motherboard, ram, cooler, total: newTotal };
+    })
+    .filter((option) => option.total <= budget)
+    .sort((a, b) => getCpuUpgradePriority(b.cpu, purpose) - getCpuUpgradePriority(a.cpu, purpose));
+
+  const bestUpgrade = upgradeOptions[0];
+  if (!bestUpgrade) return build;
+
+  const currentPriority = getCpuUpgradePriority(build.cpu, purpose);
+  const upgradePriority = getCpuUpgradePriority(bestUpgrade.cpu, purpose);
+
+  if (upgradePriority <= currentPriority) return build;
+
+  return {
+    ...build,
+    cpu: bestUpgrade.cpu,
+    motherboard: bestUpgrade.motherboard,
+    ram: bestUpgrade.ram,
+    cooler: bestUpgrade.cooler,
+    total: bestUpgrade.total,
+  };
+}
+
 function generateCandidates(budget, purpose, style) {
   const candidates = [];
 
@@ -171,11 +237,29 @@ function generateCandidates(budget, purpose, style) {
       if (total > budget) continue;
       if (budget > 1200 && total < budget * 0.58) continue;
 
-      candidates.push({ cpu, gpu, motherboard, ram, storage, psu, case: pcCase, cooler, total });
+      const baseBuild = { cpu, gpu, motherboard, ram, storage, psu, case: pcCase, cooler, total };
+      const upgradedBuild = upgradeBuildCpu(baseBuild, budget, purpose, style);
+
+      candidates.push(upgradedBuild);
     }
   }
 
-  return candidates;
+  const unique = [];
+  const seen = new Set();
+
+  for (const build of candidates) {
+    const key = `${build.cpu.name}-${build.gpu.name}-${build.total}`;
+    if (!seen.has(key)) {
+      unique.push(build);
+      seen.add(key);
+    }
+  }
+
+  return unique;
+}
+
+function isFlagshipCpu(cpu) {
+  return cpu.name.includes("Ryzen 9") || cpu.name.includes("i9");
 }
 
 function scoreBuild(build, purpose, budget, style, target) {
@@ -196,22 +280,38 @@ function scoreBuild(build, purpose, budget, style, target) {
   if (["esports", "gaming1080p", "gaming1440p"].includes(purpose) && build.gpu.brand === "AMD") brandScore += 6;
   if (purpose === "home" && build.total < 1000) brandScore += 8;
 
+  let cpuTierScore = 0;
+  const flagshipCpu = isFlagshipCpu(build.cpu);
+
+  if (flagshipCpu && budget >= 2200) cpuTierScore += 10;
+  if (flagshipCpu && budget >= 3000) cpuTierScore += 16;
+  if (flagshipCpu && ["gaming4k", "gaming1440p", "streaming", "creator", "ai"].includes(purpose)) cpuTierScore += 14;
+  if (flagshipCpu && style === "flagship") cpuTierScore += 30;
+
+  if (!flagshipCpu && style === "flagship") cpuTierScore -= 18;
+  if (build.cpu.name.includes("Ryzen 7 7800X3D") && ["creator", "ai", "streaming"].includes(purpose)) cpuTierScore -= 8;
+
   let targetBonus = 0;
-  if (target === "performance") targetBonus = performanceScore * 0.32;
+  if (target === "performance") targetBonus = performanceScore * 0.32 + cpuTierScore;
   if (target === "value") targetBonus = valueScore * 0.52;
   if (target === "alternative") {
     if (build.cpu.brand === "Intel") targetBonus += 10;
     if (build.gpu.brand === "AMD" || build.gpu.brand === "Intel") targetBonus += 14;
     if (build.gpu.brand !== "NVIDIA") targetBonus += 7;
+    if (flagshipCpu && budget >= 2200) targetBonus += 10;
   }
 
-  return performanceScore * 0.58 + valueScore * profile.valueWeight + budgetUseScore * 0.16 + brandScore + targetBonus;
+  return performanceScore * 0.58 + valueScore * profile.valueWeight + budgetUseScore * 0.16 + brandScore + cpuTierScore + targetBonus;
 }
 
 function selectBuilds(candidates, purpose, budget, style) {
   if (!candidates.length) return [];
 
-  const byPerformance = [...candidates].sort((a, b) => scoreBuild(b, purpose, budget, style, "performance") - scoreBuild(a, purpose, budget, style, "performance"))[0];
+  const performancePool = style === "flagship" || (budget >= 2600 && ["gaming4k", "gaming1440p", "streaming", "creator", "ai"].includes(purpose))
+    ? candidates.filter((x) => isFlagshipCpu(x.cpu))
+    : candidates;
+
+  const byPerformance = [...(performancePool.length ? performancePool : candidates)].sort((a, b) => scoreBuild(b, purpose, budget, style, "performance") - scoreBuild(a, purpose, budget, style, "performance"))[0];
 
   const byValue = [...candidates]
     .filter((x) => x.cpu.name !== byPerformance.cpu.name || x.gpu.name !== byPerformance.gpu.name)
@@ -298,7 +398,7 @@ export default function App() {
 
           <button style={styles.generateButton}>Recommendations update automatically</button>
 
-          <div style={styles.tip}>Affiliate links are built into each shopping button. Users only see clean product recommendations.</div>
+          <div style={styles.tip}>For high budgets, choose High-End / Flagship to force Ryzen 9 or Core i9 level recommendations.</div>
         </aside>
 
         <section style={styles.results}>
