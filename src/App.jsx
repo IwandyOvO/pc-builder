@@ -12,6 +12,8 @@ import {
   Headphones,
 } from "lucide-react";
 
+// Replace this with your real Amazon Associates tracking ID later.
+// Example: const AFFILIATE_TAG = "yourtag-20";
 const AFFILIATE_TAG = "YOUR-AMAZON-TAG-20";
 
 function amazonSearchLink(query) {
@@ -278,7 +280,7 @@ function PartCard({ icon, title, part }) {
         <div style={styles.label}>{title}</div>
         <div style={styles.value}>{part.name}</div>
         <div style={styles.price}>Estimated: ${part.price}</div>
-        <button style={styles.smallBuyButton} onClick={() => openAmazonSearch(cleanPartQuery(part, title))}>Search on Amazon</button>
+        <button style={styles.smallBuyButton} onClick={() => openAmazonSearch(cleanPartQuery(part, title))}>Buy on Amazon</button>
       </div>
     </div>
   );
@@ -342,6 +344,7 @@ export default function App() {
           <div style={styles.badge}><Sparkles size={16} /> PC Builder + Deals + Brand Guide</div>
           <h1 style={styles.title}>Build the best PC setup for your budget.</h1>
           <p style={styles.subtitle}>Dynamic part matching, compatibility checks, clean purchase links, brand recommendations, and prebuilt alternatives.</p>
+          <p style={styles.affiliateNotice}>Disclosure: purchase buttons may use affiliate links. Estimated prices are for planning only and should be verified before checkout.</p>
         </div>
 
         <div style={styles.layout}>
@@ -438,7 +441,7 @@ export default function App() {
 
                 <div style={styles.buyPanel}>
                   <h3 style={styles.buyPanelTitle}>Purchase List</h3>
-                  <p style={styles.smallText}>Search each part separately for cleaner results. Full setup search is avoided because it mixes unrelated products.</p>
+                  <p style={styles.smallText}>Buy parts individually for cleaner results. This avoids messy full-build searches and helps users compare current prices.</p>
                   <div style={styles.buyGrid}>
                     {[["CPU", build.cpu], ["GPU", build.gpu], ["Motherboard", build.motherboard], ["RAM", build.ram], ["Storage", build.storage], ["Cooler", build.cooler], ["Case", build.case], ["Power Supply", build.psu], ["Monitor", build.monitor], ["Keyboard", build.keyboard], ["Mouse", build.mouse], ["Audio", build.headset]].filter(([, part]) => part).map(([title, part]) => (
                       <button key={title} style={styles.partBuyButton} onClick={() => openAmazonSearch(cleanPartQuery(part, title))}>Buy {title}</button>
@@ -461,7 +464,7 @@ export default function App() {
 
                 {prebuiltRecommendation && (
                   <div style={styles.recommendationPanel}>
-                    <h3 style={styles.buyPanelTitle}>Prebuilt PC Alternative</h3>
+                    <h3 style={styles.buyPanelTitle}>Don’t want to build? Buy Prebuilt Instead</h3>
                     <div style={styles.prebuiltCard}>
                       <div>
                         <div style={styles.label}>{prebuiltRecommendation.brand}</div>
@@ -499,6 +502,7 @@ const styles = {
   badge: { display: "inline-flex", gap: "8px", alignItems: "center", padding: "8px 14px", borderRadius: "999px", background: "white", boxShadow: "0 8px 25px rgba(15,23,42,0.08)", fontWeight: 700, fontSize: "14px" },
   title: { fontSize: "46px", margin: "18px 0 8px", letterSpacing: "-1px" },
   subtitle: { color: "#64748b", fontSize: "18px", maxWidth: "820px", margin: "0 auto" },
+  affiliateNotice: { color: "#64748b", fontSize: "13px", maxWidth: "760px", margin: "10px auto 0", lineHeight: 1.45 },
   layout: { display: "grid", gridTemplateColumns: "420px minmax(0, 1fr)", gap: "32px", alignItems: "start", width: "100%" },
   panel: { background: "white", borderRadius: "24px", padding: "30px", boxShadow: "0 14px 40px rgba(15,23,42,0.08)" },
   panelTitle: { margin: "0 0 12px", fontSize: "24px" },
@@ -522,12 +526,12 @@ const styles = {
   icon: { background: "#e2e8f0", padding: "10px", borderRadius: "14px", display: "flex" },
   value: { fontWeight: 800, marginTop: "4px" },
   price: { fontSize: "13px", color: "#64748b", marginTop: "4px" },
-  smallBuyButton: { marginTop: "10px", padding: "8px 10px", borderRadius: "10px", border: "1px solid #cbd5e1", background: "white", color: "#0f172a", fontSize: "12px", fontWeight: 800, cursor: "pointer" },
+  smallBuyButton: { marginTop: "10px", padding: "8px 10px", borderRadius: "10px", border: "1px solid #2563eb", background: "#eff6ff", color: "#1d4ed8", fontSize: "12px", fontWeight: 800, cursor: "pointer" },
   summary: { marginTop: "20px", padding: "18px", background: "#eef2f7", borderRadius: "18px", lineHeight: 1.55 },
   buyPanel: { marginTop: "20px", padding: "18px", background: "#f8fafc", border: "1px solid #e2e8f0", borderRadius: "18px" },
   buyPanelTitle: { margin: "0 0 8px", fontSize: "20px" },
   buyGrid: { display: "grid", gridTemplateColumns: "repeat(6, minmax(0, 1fr))", gap: "10px", marginTop: "14px" },
-  partBuyButton: { padding: "11px 10px", borderRadius: "12px", border: "1px solid #cbd5e1", background: "white", fontWeight: 800, cursor: "pointer" },
+  partBuyButton: { padding: "11px 10px", borderRadius: "12px", border: "1px solid #2563eb", background: "#eff6ff", color: "#1d4ed8", fontWeight: 800, cursor: "pointer" },
   recommendationPanel: { marginTop: "20px", padding: "18px", background: "#ffffff", border: "1px solid #e2e8f0", borderRadius: "18px" },
   brandGrid: { display: "grid", gridTemplateColumns: "repeat(3, minmax(0, 1fr))", gap: "12px", marginTop: "12px" },
   brandCard: { background: "#f8fafc", borderRadius: "16px", padding: "14px", border: "1px solid #e2e8f0" },
