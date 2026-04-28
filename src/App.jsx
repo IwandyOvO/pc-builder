@@ -1,0 +1,542 @@
+import React, { useMemo, useState } from "react";
+import {
+  Cpu,
+  Monitor,
+  Zap,
+  HardDrive,
+  Fan,
+  Box,
+  Sparkles,
+  Keyboard,
+  Mouse,
+  Headphones,
+} from "lucide-react";
+
+const AFFILIATE_TAG = "YOUR-AMAZON-TAG-20";
+
+function amazonSearchLink(query) {
+  return `https://www.amazon.com/s?k=${encodeURIComponent(query)}&tag=${AFFILIATE_TAG}`;
+}
+
+function openAmazonSearch(query) {
+  window.open(amazonSearchLink(query), "_blank", "noopener,noreferrer");
+}
+
+function cleanPartQuery(part, title = "") {
+  if (!part?.name) return "";
+  const base = part.name
+    .replace("Workstation Set", "")
+    .replace("AI Workstation Set", "")
+    .replace("Storage Pack", "")
+    .trim();
+  if (title === "Power Supply") return base.replace("Power Supply", "PSU");
+  return base;
+}
+
+const parts = {
+  cpu: [
+    { name: "AMD Ryzen 5 7600", brand: "AMD", socket: "AM5", price: 190, gaming: 82, creator: 70, ai: 58, cores: 6, power: 65 },
+    { name: "AMD Ryzen 7 7800X3D", brand: "AMD", socket: "AM5", price: 375, gaming: 100, creator: 78, ai: 66, cores: 8, power: 120 },
+    { name: "AMD Ryzen 9 7950X", brand: "AMD", socket: "AM5", price: 540, gaming: 94, creator: 115, ai: 92, cores: 16, power: 170 },
+    { name: "Intel Core i5-14600KF", brand: "Intel", socket: "LGA1700", price: 285, gaming: 88, creator: 86, ai: 68, cores: 14, power: 125 },
+    { name: "Intel Core i7-14700KF", brand: "Intel", socket: "LGA1700", price: 390, gaming: 93, creator: 102, ai: 82, cores: 20, power: 125 },
+    { name: "Intel Core i9-14900K", brand: "Intel", socket: "LGA1700", price: 520, gaming: 96, creator: 112, ai: 88, cores: 24, power: 125 },
+    { name: "AMD Threadripper 7970X", brand: "AMD", socket: "sTR5", price: 2500, gaming: 100, creator: 155, ai: 145, cores: 32, power: 350 },
+    { name: "AMD Threadripper 7980X", brand: "AMD", socket: "sTR5", price: 5000, gaming: 105, creator: 185, ai: 172, cores: 64, power: 350 },
+    { name: "AMD Threadripper PRO 7995WX", brand: "AMD", socket: "sTR5", price: 10000, gaming: 110, creator: 220, ai: 210, cores: 96, power: 400 },
+  ],
+  gpu: [
+    { name: "NVIDIA RTX 4060", brand: "NVIDIA", price: 300, gaming: 65, creator: 58, ai: 55, vram: 8, power: 115, length: 240 },
+    { name: "NVIDIA RTX 4070 Super", brand: "NVIDIA", price: 610, gaming: 94, creator: 86, ai: 88, vram: 12, power: 220, length: 300 },
+    { name: "NVIDIA RTX 4070 Ti Super", brand: "NVIDIA", price: 800, gaming: 105, creator: 96, ai: 108, vram: 16, power: 285, length: 310 },
+    { name: "NVIDIA RTX 4080 Super", brand: "NVIDIA", price: 1050, gaming: 120, creator: 110, ai: 126, vram: 16, power: 320, length: 330 },
+    { name: "NVIDIA RTX 4090", brand: "NVIDIA", price: 1850, gaming: 140, creator: 135, ai: 170, vram: 24, power: 450, length: 340 },
+    { name: "Dual NVIDIA RTX 4090 Workstation Set", brand: "NVIDIA", price: 4500, gaming: 145, creator: 220, ai: 310, vram: 48, power: 900, length: 340 },
+    { name: "NVIDIA RTX 6000 Ada 48GB", brand: "NVIDIA", price: 6800, gaming: 132, creator: 245, ai: 350, vram: 48, power: 300, length: 300 },
+    { name: "Dual RTX 6000 Ada 96GB Workstation Set", brand: "NVIDIA", price: 13600, gaming: 135, creator: 360, ai: 620, vram: 96, power: 600, length: 320 },
+    { name: "Quad RTX 6000 Ada 192GB AI Workstation Set", brand: "NVIDIA", price: 27200, gaming: 138, creator: 520, ai: 1100, vram: 192, power: 1200, length: 320 },
+    { name: "AMD RX 7700 XT", brand: "AMD", price: 430, gaming: 82, creator: 62, ai: 48, vram: 12, power: 245, length: 280 },
+    { name: "AMD RX 7800 XT", brand: "AMD", price: 500, gaming: 92, creator: 70, ai: 55, vram: 16, power: 263, length: 300 },
+    { name: "AMD RX 7900 GRE", brand: "AMD", price: 560, gaming: 98, creator: 75, ai: 58, vram: 16, power: 260, length: 305 },
+    { name: "AMD RX 7900 XTX", brand: "AMD", price: 930, gaming: 116, creator: 88, ai: 64, vram: 24, power: 355, length: 340 },
+  ],
+  motherboard: [
+    { name: "B650 WiFi ATX Motherboard", socket: "AM5", size: "ATX", wifi: true, price: 190 },
+    { name: "B650M WiFi Motherboard", socket: "AM5", size: "mATX", wifi: true, price: 165 },
+    { name: "X670E Premium WiFi Motherboard", socket: "AM5", size: "ATX", wifi: true, price: 390 },
+    { name: "B760M WiFi Motherboard", socket: "LGA1700", size: "mATX", wifi: true, price: 150 },
+    { name: "Z790 WiFi Motherboard", socket: "LGA1700", size: "ATX", wifi: true, price: 260 },
+    { name: "Z790 Premium Creator Motherboard", socket: "LGA1700", size: "ATX", wifi: true, price: 440 },
+    { name: "TRX50 Creator WiFi Workstation Motherboard", socket: "sTR5", size: "ATX", wifi: true, price: 750 },
+    { name: "WRX90 Professional Workstation Motherboard", socket: "sTR5", size: "ATX", wifi: true, price: 1300 },
+  ],
+  ram: [
+    { name: "32GB DDR5 6000MHz", platform: "AM5/LGA1700", sizeGB: 32, price: 95, score: 78 },
+    { name: "64GB DDR5 6000MHz", platform: "AM5/LGA1700", sizeGB: 64, price: 180, score: 95 },
+    { name: "128GB DDR5 6000MHz", platform: "AM5/LGA1700", sizeGB: 128, price: 380, score: 120 },
+    { name: "256GB DDR5 Workstation ECC", platform: "sTR5", sizeGB: 256, price: 1200, score: 180 },
+    { name: "512GB DDR5 Workstation ECC", platform: "sTR5", sizeGB: 512, price: 2800, score: 260 },
+  ],
+  storage: [
+    { name: "1TB NVMe Gen4 SSD", sizeTB: 1, price: 70, score: 70 },
+    { name: "2TB NVMe Gen4 SSD", sizeTB: 2, price: 125, score: 90 },
+    { name: "4TB NVMe Gen4 SSD", sizeTB: 4, price: 260, score: 100 },
+    { name: "8TB NVMe Gen4 SSD", sizeTB: 8, price: 650, score: 125 },
+    { name: "16TB NVMe RAID Storage Pack", sizeTB: 16, price: 1400, score: 165 },
+    { name: "32TB NVMe Workstation Storage Pack", sizeTB: 32, price: 3000, score: 220 },
+  ],
+  case: [
+    { name: "Black Airflow ATX Case", color: "Black", size: "ATX", maxGpu: 360, price: 85 },
+    { name: "White Airflow ATX Case", color: "White", size: "ATX", maxGpu: 360, price: 110 },
+    { name: "RGB Showcase ATX Case", color: "RGB", size: "ATX", maxGpu: 370, price: 130 },
+    { name: "Minimal Black mATX Case", color: "Black", size: "mATX", maxGpu: 330, price: 80 },
+    { name: "White mATX Glass Case", color: "White", size: "mATX", maxGpu: 330, price: 105 },
+    { name: "Premium Glass Showcase ATX Case", color: "RGB", size: "ATX", maxGpu: 420, price: 320 },
+    { name: "Full Tower Workstation Case", color: "Black", size: "ATX", maxGpu: 450, price: 450 },
+    { name: "White Full Tower Showcase Case", color: "White", size: "ATX", maxGpu: 430, price: 520 },
+  ],
+  cooler: [
+    { name: "Premium Air Cooler", price: 70, capacity: 180 },
+    { name: "240mm AIO Liquid Cooler", price: 105, capacity: 220 },
+    { name: "360mm AIO Liquid Cooler", price: 155, capacity: 300 },
+    { name: "420mm AIO Liquid Cooler", price: 230, capacity: 420 },
+    { name: "Custom Liquid Cooling Loop", price: 1200, capacity: 700 },
+  ],
+  psu: [
+    { name: "650W 80+ Gold PSU", watts: 650, price: 85 },
+    { name: "750W 80+ Gold PSU", watts: 750, price: 105 },
+    { name: "850W 80+ Gold PSU", watts: 850, price: 130 },
+    { name: "1000W 80+ Gold PSU", watts: 1000, price: 180 },
+    { name: "1200W Platinum PSU", watts: 1200, price: 260 },
+    { name: "1600W Titanium PSU", watts: 1600, price: 520 },
+    { name: "2000W Workstation Power Supply", watts: 2000, price: 850 },
+  ],
+  monitor: [
+    { name: "24\" 1080p 144Hz Gaming Monitor", price: 160, resolution: "1080p", refreshRate: 144, size: 24, type: "IPS", score: 65 },
+    { name: "27\" 1440p 165Hz Gaming Monitor", price: 300, resolution: "1440p", refreshRate: 165, size: 27, type: "IPS", score: 88 },
+    { name: "32\" 4K 144Hz Gaming Monitor", price: 750, resolution: "4K", refreshRate: 144, size: 32, type: "IPS", score: 110 },
+    { name: "34\" Ultrawide OLED Gaming Monitor", price: 1000, resolution: "Ultrawide", refreshRate: 175, size: 34, type: "OLED", score: 125 },
+    { name: "49\" Super Ultrawide OLED Monitor", price: 1500, resolution: "Super Ultrawide", refreshRate: 240, size: 49, type: "OLED", score: 145 },
+  ],
+  keyboard: [
+    { name: "Budget Mechanical Keyboard", price: 45, style: "Black", score: 60 },
+    { name: "White RGB Mechanical Keyboard", price: 85, style: "White", score: 80 },
+    { name: "Premium Wireless Mechanical Keyboard", price: 180, style: "Premium", score: 100 },
+  ],
+  mouse: [
+    { name: "Budget Gaming Mouse", price: 30, style: "Black", score: 60 },
+    { name: "Lightweight Wireless Gaming Mouse", price: 100, style: "Premium", score: 95 },
+    { name: "White Wireless Gaming Mouse", price: 120, style: "White", score: 90 },
+  ],
+  headset: [
+    { name: "Basic Gaming Headset", price: 50, style: "Black", score: 60 },
+    { name: "Wireless Gaming Headset", price: 140, style: "Premium", score: 90 },
+    { name: "Studio Headphones + Mic Combo", price: 300, style: "Creator", score: 110 },
+  ],
+  prebuilt: [
+    { name: "Entry Gaming Prebuilt PC", brand: "CyberPowerPC", price: 900, cpuTier: 65, gpuTier: 65, ramGB: 16, storageTB: 1, use: "Gaming", quality: 72, vendorUrl: "https://www.cyberpowerpc.com/category/gaming-pcs/" },
+    { name: "1440p Gaming Prebuilt PC", brand: "iBUYPOWER", price: 1500, cpuTier: 82, gpuTier: 90, ramGB: 32, storageTB: 2, use: "Gaming", quality: 76, vendorUrl: "https://www.ibuypower.com/gaming-pcs" },
+    { name: "Premium Gaming Prebuilt PC", brand: "Alienware", price: 2500, cpuTier: 92, gpuTier: 110, ramGB: 32, storageTB: 2, use: "Gaming", quality: 82, vendorUrl: "https://www.dell.com/en-us/shop/gaming-and-games/sr/game-desktops/alienware-desktops" },
+    { name: "Creator Desktop Workstation", brand: "Lenovo", price: 3200, cpuTier: 105, gpuTier: 95, ramGB: 64, storageTB: 4, use: "Video Editing", quality: 88, vendorUrl: "https://www.lenovo.com/us/en/c/workstations/thinkstation-p-series/" },
+    { name: "Professional Workstation Tower", brand: "Dell Precision", price: 6000, cpuTier: 135, gpuTier: 135, ramGB: 128, storageTB: 8, use: "Workstation", quality: 92, vendorUrl: "https://www.dell.com/en-us/shop/desktop-computers/sr/desktops/precision-desktops" },
+    { name: "AI Workstation Desktop", brand: "Puget Systems", price: 12000, cpuTier: 170, gpuTier: 250, ramGB: 256, storageTB: 16, use: "AI / ML", quality: 96, vendorUrl: "https://www.pugetsystems.com/workstations/" },
+  ],
+};
+
+function getMetric(purpose) {
+  if (purpose === "AI / ML") return "ai";
+  if (purpose === "Video Editing" || purpose === "Workstation") return "creator";
+  return "gaming";
+}
+
+function pickBest(list, scoreFn) {
+  return [...list].sort((a, b) => scoreFn(b) - scoreFn(a))[0] || null;
+}
+
+function recommendBrands(build, purpose) {
+  if (!build) return [];
+  const brands = [];
+
+  if (build.gpu.brand === "NVIDIA") brands.push({ category: "GPU", brands: "ASUS / MSI / Gigabyte / PNY", note: "NVIDIA cards are usually stronger for AI, CUDA, streaming, and creator workloads." });
+  if (build.gpu.brand === "AMD") brands.push({ category: "GPU", brands: "Sapphire / PowerColor / XFX", note: "AMD cards often provide stronger gaming value per dollar." });
+
+  if (build.cpu.brand === "AMD") brands.push({ category: "CPU", brands: "AMD Ryzen / Threadripper", note: "Strong gaming efficiency and workstation scalability." });
+  if (build.cpu.brand === "Intel") brands.push({ category: "CPU", brands: "Intel Core", note: "Strong all-around performance and broad motherboard support." });
+
+  brands.push({ category: "Motherboard", brands: "ASUS / MSI / Gigabyte / ASRock", note: "Choose based on socket, VRM quality, WiFi, and expansion slots." });
+  brands.push({ category: "Power Supply", brands: "Corsair / Seasonic / EVGA / be quiet!", note: "Do not cheap out on PSU. Prefer Gold/Platinum units from known brands." });
+  brands.push({ category: "Case", brands: "Lian Li / Fractal / NZXT / Corsair", note: "Prioritize airflow, GPU clearance, and build style." });
+
+  if (purpose === "AI / ML" || purpose === "Workstation") {
+    brands.push({ category: "Prebuilt Workstation", brands: "Puget Systems / Dell Precision / Lenovo ThinkStation", note: "Better warranty and support for expensive workstation builds." });
+  } else {
+    brands.push({ category: "Prebuilt Gaming PC", brands: "CyberPowerPC / iBUYPOWER / Alienware / Skytech", note: "Good option if the user wants plug-and-play instead of building." });
+  }
+
+  return brands;
+}
+
+function recommendPrebuilt(settings, build) {
+  if (!build) return null;
+  const metric = getMetric(settings.purpose);
+  const candidates = parts.prebuilt.filter((p) => p.price <= settings.budget);
+  if (!candidates.length) return null;
+
+  return [...candidates].sort((a, b) => {
+    const scoreA = (settings.purpose === a.use ? 40 : 0) + a.quality + a.cpuTier * 0.45 + a.gpuTier * (metric === "gaming" ? 0.75 : 0.55) + a.ramGB * (metric === "gaming" ? 0.1 : 0.25) + a.storageTB * 0.8 - Math.abs(settings.budget - a.price) / 260;
+    const scoreB = (settings.purpose === b.use ? 40 : 0) + b.quality + b.cpuTier * 0.45 + b.gpuTier * (metric === "gaming" ? 0.75 : 0.55) + b.ramGB * (metric === "gaming" ? 0.1 : 0.25) + b.storageTB * 0.8 - Math.abs(settings.budget - b.price) / 260;
+    return scoreB - scoreA;
+  })[0];
+}
+
+function recommendMonitor(gpu, purpose, includeMonitor) {
+  if (!includeMonitor) return null;
+  if (purpose === "AI / ML" || purpose === "Workstation") return parts.monitor.find((m) => m.resolution === "4K") || parts.monitor[0];
+  if (gpu.gaming >= 125) return parts.monitor.find((m) => m.type === "OLED") || parts.monitor[3];
+  if (gpu.gaming >= 105) return parts.monitor.find((m) => m.resolution === "4K") || parts.monitor[2];
+  if (gpu.gaming >= 85) return parts.monitor.find((m) => m.resolution === "1440p") || parts.monitor[1];
+  return parts.monitor.find((m) => m.resolution === "1080p") || parts.monitor[0];
+}
+
+function scoreBuild(build, purpose, budget) {
+  const metric = getMetric(purpose);
+  const gpuWeight = purpose === "Gaming" ? 1.55 : purpose === "AI / ML" ? 1.7 : 1.15;
+  const cpuWeight = purpose === "Gaming" ? 0.9 : purpose === "AI / ML" ? 1.1 : 1.35;
+  const ramWeight = purpose === "Gaming" ? 0.18 : purpose === "AI / ML" ? 0.6 : 0.45;
+  const storageWeight = purpose === "Gaming" ? 0.12 : 0.25;
+  const efficiency = Math.max(0, 1 - Math.abs(budget - build.total) / budget) * 35;
+
+  return build.gpu[metric] * gpuWeight + build.cpu[metric] * cpuWeight + build.ram.score * ramWeight + build.storage.score * storageWeight + (build.monitor?.score || 0) * 0.08 + efficiency;
+}
+
+function generateBuild(settings) {
+  const { budget, purpose, cpuPref, gpuPref, color, size, needWifi, upgrade, includeMonitor, includeKeyboard, includeMouse, includeHeadset, minRam, minStorage } = settings;
+  const candidates = [];
+  const cpuPool = parts.cpu.filter((p) => cpuPref === "No Preference" || p.brand === cpuPref);
+  const gpuPool = parts.gpu.filter((p) => gpuPref === "No Preference" || p.brand === gpuPref);
+
+  for (const cpu of cpuPool) {
+    for (const gpu of gpuPool) {
+      const motherboards = parts.motherboard.filter((m) => {
+        const socketOk = m.socket === cpu.socket;
+        const wifiOk = !needWifi || m.wifi;
+        const sizeOk = size === "No Preference" || m.size === size || size === "ATX";
+        return socketOk && wifiOk && sizeOk;
+      });
+
+      for (const motherboard of motherboards) {
+        const rams = parts.ram.filter((r) => {
+          const platformOk = cpu.socket === "sTR5" ? r.platform === "sTR5" : r.platform === "AM5/LGA1700";
+          return platformOk && r.sizeGB >= minRam;
+        });
+
+        for (const ram of rams) {
+          const storages = parts.storage.filter((s) => s.sizeTB >= minStorage);
+          for (const storage of storages) {
+            const cases = parts.case.filter((c) => {
+              const colorOk = color === "No Preference" || c.color === color || (color === "Minimal" && c.color === "Black");
+              const sizeOk = size === "No Preference" || c.size === size;
+              const gpuOk = c.maxGpu >= gpu.length;
+              const boardOk = c.size === motherboard.size || c.size === "ATX";
+              return colorOk && sizeOk && gpuOk && boardOk;
+            });
+
+            for (const pcCase of cases) {
+              const cooler = parts.cooler.find((c) => c.capacity >= cpu.power) || parts.cooler.at(-1);
+              const estimatedWatts = cpu.power + gpu.power + 150 + (upgrade ? 120 : 60);
+              const psu = parts.psu.find((p) => p.watts >= estimatedWatts);
+              if (!psu) continue;
+
+              const monitor = recommendMonitor(gpu, purpose, includeMonitor);
+              const keyboard = includeKeyboard ? pickBest(parts.keyboard, (k) => k.score - Math.abs(k.price - budget * 0.02)) : null;
+              const mouse = includeMouse ? pickBest(parts.mouse, (m) => m.score - Math.abs(m.price - budget * 0.015)) : null;
+              const headset = includeHeadset ? pickBest(parts.headset, (h) => h.score - Math.abs(h.price - budget * 0.02)) : null;
+
+              const total = cpu.price + gpu.price + motherboard.price + ram.price + storage.price + pcCase.price + cooler.price + psu.price + (monitor?.price || 0) + (keyboard?.price || 0) + (mouse?.price || 0) + (headset?.price || 0);
+              if (total > budget) continue;
+              if (budget <= 6000 && total < budget * 0.35) continue;
+
+              const build = { cpu, gpu, motherboard, ram, storage, case: pcCase, cooler, psu, monitor, keyboard, mouse, headset, total };
+              candidates.push({ ...build, score: scoreBuild(build, purpose, budget), metric: getMetric(purpose) });
+            }
+          }
+        }
+      }
+    }
+  }
+
+  candidates.sort((a, b) => b.score - a.score);
+  return candidates[0] || null;
+}
+
+function PartCard({ icon, title, part }) {
+  if (!part) return null;
+  return (
+    <div style={styles.partCard}>
+      <div style={styles.icon}>{icon}</div>
+      <div style={{ flex: 1 }}>
+        <div style={styles.label}>{title}</div>
+        <div style={styles.value}>{part.name}</div>
+        <div style={styles.price}>Estimated: ${part.price}</div>
+        <button style={styles.smallBuyButton} onClick={() => openAmazonSearch(cleanPartQuery(part, title))}>Search on Amazon</button>
+      </div>
+    </div>
+  );
+}
+
+function Select({ label, value, onChange, options }) {
+  return (
+    <label style={{ display: "block" }}>
+      <span style={styles.labelText}>{label}</span>
+      <select value={value} onChange={(e) => onChange(e.target.value)} style={styles.input}>
+        {options.map((option) => <option key={option}>{option}</option>)}
+      </select>
+    </label>
+  );
+}
+
+function Checkbox({ checked, onChange, label }) {
+  return (
+    <label style={styles.checkRow}>
+      <input type="checkbox" checked={checked} onChange={(e) => onChange(e.target.checked)} /> {label}
+    </label>
+  );
+}
+
+export default function App() {
+  const [budget, setBudget] = useState(3000);
+  const [budgetInput, setBudgetInput] = useState("3000");
+  const [purpose, setPurpose] = useState("Gaming");
+  const [cpuPref, setCpuPref] = useState("No Preference");
+  const [gpuPref, setGpuPref] = useState("No Preference");
+  const [color, setColor] = useState("No Preference");
+  const [size, setSize] = useState("ATX");
+  const [needWifi, setNeedWifi] = useState(true);
+  const [upgrade, setUpgrade] = useState(true);
+  const [includeMonitor, setIncludeMonitor] = useState(true);
+  const [includeKeyboard, setIncludeKeyboard] = useState(false);
+  const [includeMouse, setIncludeMouse] = useState(false);
+  const [includeHeadset, setIncludeHeadset] = useState(false);
+  const [minRam, setMinRam] = useState(32);
+  const [minStorage, setMinStorage] = useState(2);
+  const [submittedSettings, setSubmittedSettings] = useState({ budget: 3000, purpose: "Gaming", cpuPref: "No Preference", gpuPref: "No Preference", color: "No Preference", size: "ATX", needWifi: true, upgrade: true, includeMonitor: true, includeKeyboard: false, includeMouse: false, includeHeadset: false, minRam: 32, minStorage: 2 });
+
+  const handleSearch = () => {
+    let value = Number(budgetInput);
+    if (Number.isNaN(value) || budgetInput.trim() === "") value = 700;
+    value = Math.min(50000, Math.max(700, value));
+    setBudget(value);
+    setBudgetInput(String(value));
+    setSubmittedSettings({ budget: value, purpose, cpuPref, gpuPref, color, size, needWifi, upgrade, includeMonitor, includeKeyboard, includeMouse, includeHeadset, minRam, minStorage });
+  };
+
+  const build = useMemo(() => generateBuild(submittedSettings), [submittedSettings]);
+  const savings = build ? submittedSettings.budget - build.total : 0;
+  const brandRecommendations = useMemo(() => recommendBrands(build, submittedSettings.purpose), [build, submittedSettings.purpose]);
+  const prebuiltRecommendation = useMemo(() => recommendPrebuilt(submittedSettings, build), [submittedSettings, build]);
+
+  return (
+    <div style={styles.page}>
+      <div style={styles.container}>
+        <div style={styles.hero}>
+          <div style={styles.badge}><Sparkles size={16} /> PC Builder + Deals + Brand Guide</div>
+          <h1 style={styles.title}>Build the best PC setup for your budget.</h1>
+          <p style={styles.subtitle}>Dynamic part matching, compatibility checks, clean purchase links, brand recommendations, and prebuilt alternatives.</p>
+        </div>
+
+        <div style={styles.layout}>
+          <div style={styles.panel}>
+            <h2 style={styles.panelTitle}>Build Requirements</h2>
+
+            <label style={styles.labelText}>Budget</label>
+            <div style={styles.budgetRow}>
+              <span style={styles.dollarSign}>$</span>
+              <input type="number" min="700" max="50000" step="100" value={budgetInput} onChange={(e) => setBudgetInput(e.target.value)} onBlur={() => { let value = Number(budgetInput); if (Number.isNaN(value) || budgetInput.trim() === "") value = 700; value = Math.min(50000, Math.max(700, value)); setBudget(value); setBudgetInput(String(value)); }} onKeyDown={(e) => { if (e.key === "Enter") e.currentTarget.blur(); }} style={styles.budgetInput} />
+            </div>
+            <input type="range" min="700" max="50000" step="100" value={budget} onChange={(e) => { const value = Number(e.target.value); setBudget(value); setBudgetInput(String(value)); }} style={{ width: "100%" }} />
+
+            <Select label="Main Purpose" value={purpose} onChange={setPurpose} options={["Gaming", "Streaming", "Video Editing", "AI / ML", "Workstation", "Mixed Use"]} />
+            <Select label="CPU Manufacturer" value={cpuPref} onChange={setCpuPref} options={["No Preference", "AMD", "Intel"]} />
+            <Select label="GPU Manufacturer" value={gpuPref} onChange={setGpuPref} options={["No Preference", "NVIDIA", "AMD"]} />
+            <Select label="Color Theme" value={color} onChange={setColor} options={["No Preference", "Black", "White", "RGB", "Minimal"]} />
+            <Select label="Case Size" value={size} onChange={setSize} options={["No Preference", "ATX", "mATX"]} />
+            <Select label="Minimum RAM" value={String(minRam)} onChange={(v) => setMinRam(Number(v))} options={["32", "64", "128", "256", "512"]} />
+            <Select label="Minimum Storage" value={String(minStorage)} onChange={(v) => setMinStorage(Number(v))} options={["1", "2", "4", "8", "16", "32"]} />
+
+            <div style={styles.filterGroup}>
+              <div style={styles.groupTitle}>Connectivity</div>
+              <Checkbox checked={needWifi} onChange={setNeedWifi} label="WiFi / Bluetooth" />
+              <Checkbox checked={upgrade} onChange={setUpgrade} label="Future upgrade room" />
+            </div>
+
+            <div style={styles.filterGroup}>
+              <div style={styles.groupTitle}>Included Components</div>
+              <Checkbox checked={includeMonitor} onChange={setIncludeMonitor} label="Monitor" />
+              <Checkbox checked={includeKeyboard} onChange={setIncludeKeyboard} label="Keyboard" />
+              <Checkbox checked={includeMouse} onChange={setIncludeMouse} label="Mouse" />
+              <Checkbox checked={includeHeadset} onChange={setIncludeHeadset} label="Headset / Audio" />
+            </div>
+
+            <button style={styles.searchButton} onClick={handleSearch}>Search Recommended Setup</button>
+          </div>
+
+          <div style={styles.panel}>
+            <div style={styles.resultHeader}>
+              <div>
+                <h2 style={styles.panelTitle}>Recommended Setup</h2>
+                <p style={styles.smallText}>Generated from your budget, selected requirements, and compatibility rules.</p>
+              </div>
+              <div style={styles.totalBox}>
+                <div style={styles.label}>Estimated Total</div>
+                <div style={styles.total}>{build ? `$${build.total.toLocaleString()}` : "$N/A"}</div>
+              </div>
+            </div>
+
+            <div style={styles.requirementsBox}>
+              <h3 style={styles.requirementsTitle}>Selected Requirements</h3>
+              <div style={styles.requirementsGrid}>
+                <span><strong>Budget:</strong> ${submittedSettings.budget.toLocaleString()}</span>
+                <span><strong>Purpose:</strong> {submittedSettings.purpose}</span>
+                <span><strong>CPU:</strong> {submittedSettings.cpuPref}</span>
+                <span><strong>GPU:</strong> {submittedSettings.gpuPref}</span>
+                <span><strong>Theme:</strong> {submittedSettings.color}</span>
+                <span><strong>Case:</strong> {submittedSettings.size}</span>
+                <span><strong>RAM:</strong> {submittedSettings.minRam}GB+</span>
+                <span><strong>Storage:</strong> {submittedSettings.minStorage}TB+</span>
+                <span><strong>WiFi:</strong> {submittedSettings.needWifi ? "Yes" : "No"}</span>
+                <span><strong>Upgrade room:</strong> {submittedSettings.upgrade ? "Yes" : "No"}</span>
+                <span><strong>Monitor:</strong> {submittedSettings.includeMonitor ? "Included" : "Not included"}</span>
+                <span><strong>Accessories:</strong> {[submittedSettings.includeKeyboard && "Keyboard", submittedSettings.includeMouse && "Mouse", submittedSettings.includeHeadset && "Audio"].filter(Boolean).join(", ") || "None"}</span>
+              </div>
+              <p style={styles.requirementsNote}>Any field left as <strong>No Preference</strong> means the system will choose the best-value compatible option automatically.</p>
+            </div>
+
+            {!build ? (
+              <div style={styles.empty}>No compatible build found. Increase budget or loosen brand/color/RAM/storage constraints.</div>
+            ) : (
+              <>
+                <div style={styles.partsGrid}>
+                  <PartCard icon={<Cpu size={22} />} title="CPU" part={build.cpu} />
+                  <PartCard icon={<Monitor size={22} />} title="GPU" part={build.gpu} />
+                  <PartCard icon={<Box size={22} />} title="Motherboard" part={build.motherboard} />
+                  <PartCard icon={<Zap size={22} />} title="RAM" part={build.ram} />
+                  <PartCard icon={<HardDrive size={22} />} title="Storage" part={build.storage} />
+                  <PartCard icon={<Fan size={22} />} title="Cooler" part={build.cooler} />
+                  <PartCard icon={<Box size={22} />} title="Case" part={build.case} />
+                  <PartCard icon={<Zap size={22} />} title="Power Supply" part={build.psu} />
+                  <PartCard icon={<Monitor size={22} />} title="Monitor" part={build.monitor} />
+                  <PartCard icon={<Keyboard size={22} />} title="Keyboard" part={build.keyboard} />
+                  <PartCard icon={<Mouse size={22} />} title="Mouse" part={build.mouse} />
+                  <PartCard icon={<Headphones size={22} />} title="Audio" part={build.headset} />
+                </div>
+
+                <div style={styles.summary}>
+                  <h3>Why this setup?</h3>
+                  <p>This setup prioritizes <strong>{build.metric}</strong> performance based on the requirements shown above, then checks socket, RAM platform, GPU clearance, PSU headroom, case size, and WiFi requirements.</p>
+                  <p><strong>Budget used:</strong> ${build.total.toLocaleString()} / ${submittedSettings.budget.toLocaleString()} · <strong>Remaining:</strong> ${savings.toLocaleString()}</p>
+                </div>
+
+                <div style={styles.buyPanel}>
+                  <h3 style={styles.buyPanelTitle}>Purchase List</h3>
+                  <p style={styles.smallText}>Search each part separately for cleaner results. Full setup search is avoided because it mixes unrelated products.</p>
+                  <div style={styles.buyGrid}>
+                    {[["CPU", build.cpu], ["GPU", build.gpu], ["Motherboard", build.motherboard], ["RAM", build.ram], ["Storage", build.storage], ["Cooler", build.cooler], ["Case", build.case], ["Power Supply", build.psu], ["Monitor", build.monitor], ["Keyboard", build.keyboard], ["Mouse", build.mouse], ["Audio", build.headset]].filter(([, part]) => part).map(([title, part]) => (
+                      <button key={title} style={styles.partBuyButton} onClick={() => openAmazonSearch(cleanPartQuery(part, title))}>Buy {title}</button>
+                    ))}
+                  </div>
+                </div>
+
+                <div style={styles.recommendationPanel}>
+                  <h3 style={styles.buyPanelTitle}>Recommended Brands</h3>
+                  <div style={styles.brandGrid}>
+                    {brandRecommendations.map((item) => (
+                      <div key={item.category} style={styles.brandCard}>
+                        <div style={styles.label}>{item.category}</div>
+                        <div style={styles.value}>{item.brands}</div>
+                        <p style={styles.brandNote}>{item.note}</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {prebuiltRecommendation && (
+                  <div style={styles.recommendationPanel}>
+                    <h3 style={styles.buyPanelTitle}>Prebuilt PC Alternative</h3>
+                    <div style={styles.prebuiltCard}>
+                      <div>
+                        <div style={styles.label}>{prebuiltRecommendation.brand}</div>
+                        <div style={styles.value}>{prebuiltRecommendation.name}</div>
+                        <p style={styles.brandNote}>Estimated ${prebuiltRecommendation.price.toLocaleString()} · {prebuiltRecommendation.ramGB}GB RAM · {prebuiltRecommendation.storageTB}TB storage</p>
+                      </div>
+                      <button
+                        style={styles.prebuiltButton}
+                        onClick={() => {
+                          if (prebuiltRecommendation.vendorUrl) {
+                            window.open(prebuiltRecommendation.vendorUrl, "_blank", "noopener,noreferrer");
+                          } else {
+                            openAmazonSearch(`${prebuiltRecommendation.brand} ${prebuiltRecommendation.name}`);
+                          }
+                        }}
+                      >
+                        View Vendor
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </>
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+const styles = {
+  page: { minHeight: "100vh", width: "100vw", background: "#f6f8fb", color: "#0f172a", fontFamily: "Arial, sans-serif", padding: "32px 48px", boxSizing: "border-box" },
+  container: { width: "100%", maxWidth: "none", margin: "0" },
+  hero: { textAlign: "center", marginBottom: "28px" },
+  badge: { display: "inline-flex", gap: "8px", alignItems: "center", padding: "8px 14px", borderRadius: "999px", background: "white", boxShadow: "0 8px 25px rgba(15,23,42,0.08)", fontWeight: 700, fontSize: "14px" },
+  title: { fontSize: "46px", margin: "18px 0 8px", letterSpacing: "-1px" },
+  subtitle: { color: "#64748b", fontSize: "18px", maxWidth: "820px", margin: "0 auto" },
+  layout: { display: "grid", gridTemplateColumns: "420px minmax(0, 1fr)", gap: "32px", alignItems: "start", width: "100%" },
+  panel: { background: "white", borderRadius: "24px", padding: "30px", boxShadow: "0 14px 40px rgba(15,23,42,0.08)" },
+  panelTitle: { margin: "0 0 12px", fontSize: "24px" },
+  labelText: { display: "block", marginTop: "14px", marginBottom: "8px", fontWeight: 700 },
+  input: { width: "100%", padding: "12px", border: "1px solid #cbd5e1", borderRadius: "12px", background: "white", fontSize: "14px" },
+  checkRow: { display: "flex", gap: "10px", alignItems: "center", marginTop: "10px", fontWeight: 600 },
+  filterGroup: { marginTop: "18px", paddingTop: "14px", borderTop: "1px solid #e2e8f0" },
+  groupTitle: { fontWeight: 800, marginBottom: "6px" },
+  searchButton: { marginTop: "20px", width: "100%", padding: "15px", borderRadius: "16px", border: "none", background: "#2563eb", color: "white", fontSize: "16px", fontWeight: 800, cursor: "pointer", boxShadow: "0 10px 22px rgba(37,99,235,0.22)" },
+  resultHeader: { display: "flex", justifyContent: "space-between", gap: "16px", alignItems: "center", marginBottom: "18px" },
+  smallText: { margin: 0, color: "#64748b" },
+  totalBox: { background: "#0f172a", color: "white", borderRadius: "18px", padding: "14px 18px", minWidth: "170px", textAlign: "center" },
+  total: { fontSize: "25px", fontWeight: 800 },
+  label: { fontSize: "12px", textTransform: "uppercase", color: "#64748b", fontWeight: 700, letterSpacing: "0.5px" },
+  requirementsBox: { marginBottom: "18px", padding: "16px", borderRadius: "18px", background: "#f8fafc", border: "1px solid #e2e8f0" },
+  requirementsTitle: { margin: "0 0 12px", fontSize: "18px" },
+  requirementsGrid: { display: "grid", gridTemplateColumns: "1fr 1fr", gap: "8px 14px", fontSize: "14px", color: "#334155" },
+  requirementsNote: { margin: "12px 0 0", color: "#64748b", fontSize: "13px", lineHeight: 1.45 },
+  partsGrid: { display: "grid", gridTemplateColumns: "repeat(4, minmax(0, 1fr))", gap: "16px" },
+  partCard: { display: "flex", gap: "12px", alignItems: "center", padding: "14px", borderRadius: "18px", border: "1px solid #e2e8f0", background: "#f8fafc" },
+  icon: { background: "#e2e8f0", padding: "10px", borderRadius: "14px", display: "flex" },
+  value: { fontWeight: 800, marginTop: "4px" },
+  price: { fontSize: "13px", color: "#64748b", marginTop: "4px" },
+  smallBuyButton: { marginTop: "10px", padding: "8px 10px", borderRadius: "10px", border: "1px solid #cbd5e1", background: "white", color: "#0f172a", fontSize: "12px", fontWeight: 800, cursor: "pointer" },
+  summary: { marginTop: "20px", padding: "18px", background: "#eef2f7", borderRadius: "18px", lineHeight: 1.55 },
+  buyPanel: { marginTop: "20px", padding: "18px", background: "#f8fafc", border: "1px solid #e2e8f0", borderRadius: "18px" },
+  buyPanelTitle: { margin: "0 0 8px", fontSize: "20px" },
+  buyGrid: { display: "grid", gridTemplateColumns: "repeat(6, minmax(0, 1fr))", gap: "10px", marginTop: "14px" },
+  partBuyButton: { padding: "11px 10px", borderRadius: "12px", border: "1px solid #cbd5e1", background: "white", fontWeight: 800, cursor: "pointer" },
+  recommendationPanel: { marginTop: "20px", padding: "18px", background: "#ffffff", border: "1px solid #e2e8f0", borderRadius: "18px" },
+  brandGrid: { display: "grid", gridTemplateColumns: "repeat(3, minmax(0, 1fr))", gap: "12px", marginTop: "12px" },
+  brandCard: { background: "#f8fafc", borderRadius: "16px", padding: "14px", border: "1px solid #e2e8f0" },
+  brandNote: { color: "#64748b", fontSize: "13px", lineHeight: 1.45, margin: "8px 0 0" },
+  prebuiltCard: { display: "flex", justifyContent: "space-between", gap: "18px", alignItems: "center", background: "#f8fafc", borderRadius: "16px", padding: "14px", border: "1px solid #e2e8f0", marginTop: "12px" },
+  prebuiltButton: { padding: "12px 14px", borderRadius: "12px", border: "none", background: "#2563eb", color: "white", fontWeight: 800, cursor: "pointer", whiteSpace: "nowrap" },
+  button: { marginTop: "18px", width: "100%", padding: "15px", borderRadius: "16px", border: "none", background: "#0f172a", color: "white", fontSize: "16px", fontWeight: 800, cursor: "pointer" },
+  budgetRow: { display: "flex", alignItems: "center", gap: "8px", border: "1px solid #cbd5e1", borderRadius: "12px", padding: "0 12px", background: "white", marginBottom: "10px" },
+  dollarSign: { fontWeight: 800, color: "#64748b" },
+  budgetInput: { width: "100%", padding: "12px 4px", border: "none", outline: "none", fontSize: "16px", fontWeight: 800, background: "transparent" },
+  empty: { padding: "28px", borderRadius: "18px", background: "#fff7ed", color: "#9a3412", fontWeight: 700 },
+};
