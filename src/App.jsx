@@ -473,14 +473,12 @@ export default function App() {
                       </div>
                       <button
   			style={styles.prebuiltButton}
- 			onClick={() => {
-   			 if (prebuiltRecommendation.vendorUrl) {
-      			   window.open(prebuiltRecommendation.vendorUrl, "_blank");
-    			 }
-                       }}
-                      >
-                       View Vendor
-                     </button>
+			onClick={() =>
+    				openAmazonSearch(`${prebuiltRecommendation.brand} ${prebuiltRecommendation.name}`)
+  				}
+			>
+  			Buy on Amazon
+			</button>
                     </div>
                   </div>
                 )}
