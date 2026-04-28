@@ -472,17 +472,15 @@ export default function App() {
                         <p style={styles.brandNote}>Estimated ${prebuiltRecommendation.price.toLocaleString()} · {prebuiltRecommendation.ramGB}GB RAM · {prebuiltRecommendation.storageTB}TB storage</p>
                       </div>
                       <button
-                        style={styles.prebuiltButton}
-                        onClick={() => {
-                          if (prebuiltRecommendation.vendorUrl) {
-                            window.open(prebuiltRecommendation.vendorUrl, "_blank", "noopener,noreferrer");
-                          } else {
-                            openAmazonSearch(`${prebuiltRecommendation.brand} ${prebuiltRecommendation.name}`);
-                          }
-                        }}
+  			style={styles.prebuiltButton}
+ 			onClick={() => {
+   			 if (prebuiltRecommendation.vendorUrl) {
+      			   window.open(prebuiltRecommendation.vendorUrl, "_blank");
+    			 }
+                       }}
                       >
-                        View Vendor
-                      </button>
+                       View Vendor
+                     </button>
                     </div>
                   </div>
                 )}
