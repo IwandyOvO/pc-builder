@@ -37,16 +37,43 @@ function cleanPartQuery(part, title = "") {
 
 const parts = {
   cpu: [
+    // Budget / home office
     { name: "AMD Ryzen 5 5600G", brand: "AMD", socket: "AM4", price: 120, gaming: 52, creator: 50, ai: 30, cores: 6, power: 65, tier: "budget" },
     { name: "AMD Ryzen 5 5600", brand: "AMD", socket: "AM4", price: 125, gaming: 70, creator: 55, ai: 40, cores: 6, power: 65, tier: "budget" },
+    { name: "AMD Ryzen 5 7500F", brand: "AMD", socket: "AM5", price: 160, gaming: 78, creator: 65, ai: 52, cores: 6, power: 65, tier: "budget" },
+    { name: "AMD Ryzen 5 7600", brand: "AMD", socket: "AM5", price: 190, gaming: 82, creator: 70, ai: 58, cores: 6, power: 65, tier: "mainstream" },
+    { name: "AMD Ryzen 5 7600X", brand: "AMD", socket: "AM5", price: 215, gaming: 84, creator: 72, ai: 60, cores: 6, power: 105, tier: "mainstream" },
+
+    // AMD Ryzen 7
+    { name: "AMD Ryzen 7 7700", brand: "AMD", socket: "AM5", price: 260, gaming: 86, creator: 82, ai: 68, cores: 8, power: 65, tier: "mainstream" },
+    { name: "AMD Ryzen 7 7700X", brand: "AMD", socket: "AM5", price: 290, gaming: 88, creator: 88, ai: 70, cores: 8, power: 105, tier: "mainstream" },
+    { name: "AMD Ryzen 7 7800X3D", brand: "AMD", socket: "AM5", price: 375, gaming: 100, creator: 78, ai: 66, cores: 8, power: 120, tier: "gaming" },
+    { name: "AMD Ryzen 7 9700X", brand: "AMD", socket: "AM5", price: 330, gaming: 91, creator: 94, ai: 76, cores: 8, power: 65, tier: "mainstream" },
+    { name: "AMD Ryzen 7 9800X3D", brand: "AMD", socket: "AM5", price: 480, gaming: 108, creator: 86, ai: 72, cores: 8, power: 120, tier: "gaming" },
+
+    // AMD Ryzen 9
+    { name: "AMD Ryzen 9 7900", brand: "AMD", socket: "AM5", price: 360, gaming: 88, creator: 98, ai: 82, cores: 12, power: 65, tier: "creator" },
+    { name: "AMD Ryzen 9 7900X", brand: "AMD", socket: "AM5", price: 390, gaming: 90, creator: 105, ai: 85, cores: 12, power: 170, tier: "creator" },
+    { name: "AMD Ryzen 9 7900X3D", brand: "AMD", socket: "AM5", price: 430, gaming: 98, creator: 102, ai: 84, cores: 12, power: 120, tier: "enthusiast" },
+    { name: "AMD Ryzen 9 7950X", brand: "AMD", socket: "AM5", price: 540, gaming: 94, creator: 115, ai: 92, cores: 16, power: 170, tier: "creator" },
+    { name: "AMD Ryzen 9 7950X3D", brand: "AMD", socket: "AM5", price: 600, gaming: 103, creator: 112, ai: 92, cores: 16, power: 120, tier: "enthusiast" },
+    { name: "AMD Ryzen 9 9900X", brand: "AMD", socket: "AM5", price: 450, gaming: 95, creator: 112, ai: 90, cores: 12, power: 120, tier: "creator" },
+    { name: "AMD Ryzen 9 9950X", brand: "AMD", socket: "AM5", price: 650, gaming: 99, creator: 128, ai: 102, cores: 16, power: 170, tier: "enthusiast" },
+    { name: "AMD Ryzen 9 9950X3D", brand: "AMD", socket: "AM5", price: 750, gaming: 110, creator: 126, ai: 104, cores: 16, power: 170, tier: "enthusiast" },
+
+    // Intel Core / Core Ultra
     { name: "Intel Core i3-13100", brand: "Intel", socket: "LGA1700", price: 115, gaming: 58, creator: 45, ai: 35, cores: 4, power: 60, tier: "budget" },
     { name: "Intel Core i5-13400", brand: "Intel", socket: "LGA1700", price: 185, gaming: 74, creator: 68, ai: 50, cores: 10, power: 65, tier: "budget" },
-    { name: "AMD Ryzen 5 7600", brand: "AMD", socket: "AM5", price: 190, gaming: 82, creator: 70, ai: 58, cores: 6, power: 65, tier: "mainstream" },
-    { name: "AMD Ryzen 7 7800X3D", brand: "AMD", socket: "AM5", price: 375, gaming: 100, creator: 78, ai: 66, cores: 8, power: 120, tier: "gaming" },
-    { name: "AMD Ryzen 9 7950X", brand: "AMD", socket: "AM5", price: 540, gaming: 94, creator: 115, ai: 92, cores: 16, power: 170, tier: "creator" },
+    { name: "Intel Core i5-14400F", brand: "Intel", socket: "LGA1700", price: 170, gaming: 72, creator: 62, ai: 48, cores: 10, power: 65, tier: "budget" },
     { name: "Intel Core i5-14600KF", brand: "Intel", socket: "LGA1700", price: 285, gaming: 88, creator: 86, ai: 68, cores: 14, power: 125, tier: "mainstream" },
+    { name: "Intel Core i7-14700K", brand: "Intel", socket: "LGA1700", price: 410, gaming: 94, creator: 105, ai: 85, cores: 20, power: 125, tier: "creator" },
     { name: "Intel Core i7-14700KF", brand: "Intel", socket: "LGA1700", price: 390, gaming: 93, creator: 102, ai: 82, cores: 20, power: 125, tier: "creator" },
     { name: "Intel Core i9-14900K", brand: "Intel", socket: "LGA1700", price: 520, gaming: 96, creator: 112, ai: 88, cores: 24, power: 125, tier: "creator" },
+    { name: "Intel Core i9-14900KF", brand: "Intel", socket: "LGA1700", price: 500, gaming: 97, creator: 114, ai: 88, cores: 24, power: 125, tier: "creator" },
+    { name: "Intel Core Ultra 7 265K", brand: "Intel", socket: "LGA1851", price: 400, gaming: 92, creator: 108, ai: 92, cores: 20, power: 125, tier: "creator" },
+    { name: "Intel Core Ultra 9 285K", brand: "Intel", socket: "LGA1851", price: 590, gaming: 96, creator: 122, ai: 106, cores: 24, power: 125, tier: "enthusiast" },
+
+    // Workstation
     { name: "AMD Threadripper 7970X", brand: "AMD", socket: "sTR5", price: 2500, gaming: 88, creator: 155, ai: 145, cores: 32, power: 350, tier: "workstation" },
     { name: "AMD Threadripper 7980X", brand: "AMD", socket: "sTR5", price: 5000, gaming: 90, creator: 185, ai: 172, cores: 64, power: 350, tier: "workstation" },
     { name: "AMD Threadripper PRO 7995WX", brand: "AMD", socket: "sTR5", price: 10000, gaming: 92, creator: 220, ai: 210, cores: 96, power: 400, tier: "workstation" },
@@ -76,9 +103,13 @@ const parts = {
     { name: "B650 WiFi ATX Motherboard", socket: "AM5", size: "ATX", wifi: true, price: 190 },
     { name: "B650M WiFi Motherboard", socket: "AM5", size: "mATX", wifi: true, price: 165 },
     { name: "X670E Premium WiFi Motherboard", socket: "AM5", size: "ATX", wifi: true, price: 390 },
+    { name: "X870 WiFi Motherboard", socket: "AM5", size: "ATX", wifi: true, price: 310 },
+    { name: "X870E Premium WiFi Motherboard", socket: "AM5", size: "ATX", wifi: true, price: 480 },
     { name: "B760M WiFi Motherboard", socket: "LGA1700", size: "mATX", wifi: true, price: 150 },
     { name: "Z790 WiFi Motherboard", socket: "LGA1700", size: "ATX", wifi: true, price: 260 },
     { name: "Z790 Premium Creator Motherboard", socket: "LGA1700", size: "ATX", wifi: true, price: 440 },
+    { name: "Z890 WiFi Motherboard", socket: "LGA1851", size: "ATX", wifi: true, price: 300 },
+    { name: "Z890 Premium Creator Motherboard", socket: "LGA1851", size: "ATX", wifi: true, price: 520 },
     { name: "TRX50 Creator WiFi Workstation Motherboard", socket: "sTR5", size: "ATX", wifi: true, price: 750 },
     { name: "WRX90 Professional Workstation Motherboard", socket: "sTR5", size: "ATX", wifi: true, price: 1300 },
   ],
@@ -242,13 +273,21 @@ function recommendMonitor(gpu, purpose, includeMonitor) {
 function scoreBuild(build, purpose, budget) {
   const metric = getMetric(purpose);
   const isBasicUse = BASIC_PURPOSES.includes(purpose);
-  const gpuWeight = isBasicUse ? 0.2 : purpose === "Gaming" ? 1.55 : purpose === "AI / ML" ? 1.7 : 1.15;
-  const cpuWeight = isBasicUse ? 1.05 : purpose === "Gaming" ? 0.9 : purpose === "AI / ML" ? 1.1 : 1.35;
+  const gpuWeight = isBasicUse ? 0.2 : purpose === "Gaming" ? (budget >= 5000 ? 1.25 : 1.55) : purpose === "AI / ML" ? 1.7 : 1.15;
+  const cpuWeight = isBasicUse ? 1.05 : purpose === "Gaming" ? (budget >= 5000 ? 1.35 : 0.9) : purpose === "AI / ML" ? 1.1 : 1.35;
   const ramWeight = isBasicUse ? 0.3 : purpose === "Gaming" ? 0.18 : purpose === "AI / ML" ? 0.6 : 0.45;
   const storageWeight = isBasicUse ? 0.35 : purpose === "Gaming" ? 0.12 : 0.25;
   const valuePenalty = build.total / Math.max(budget, 1) * (isBasicUse ? 18 : 8);
+  const highBudgetCpuBoost =
+    budget >= 5000 && purpose === "Gaming" && build.cpu.name.includes("Ryzen 9")
+      ? 38
+      : budget >= 5000 && purpose === "Gaming" && build.cpu.name.includes("Core i9")
+      ? 34
+      : budget >= 5000 && purpose === "Gaming" && build.cpu.name.includes("Core Ultra 9")
+      ? 34
+      : 0;
 
-  return build.gpu[metric] * gpuWeight + build.cpu[metric] * cpuWeight + build.ram.score * ramWeight + build.storage.score * storageWeight + (build.monitor?.score || 0) * 0.08 - valuePenalty;
+  return build.gpu[metric] * gpuWeight + build.cpu[metric] * cpuWeight + build.ram.score * ramWeight + build.storage.score * storageWeight + (build.monitor?.score || 0) * 0.08 - valuePenalty + highBudgetCpuBoost;
 }
 
 function generateBuild(settings) {
