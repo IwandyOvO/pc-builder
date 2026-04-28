@@ -270,24 +270,134 @@ function recommendMonitor(gpu, purpose, includeMonitor) {
   return parts.monitor.find((m) => m.resolution === "1080p") || parts.monitor[0];
 }
 
+function getPurposeProfile(purpose, budget) {
+  const highBudget = budget >= 5000;
+  const ultraBudget = budget >= 10000;
+
+  if (purpose === "Gaming") {
+    return {
+      cpuWeight: highBudget ? 1.45 : 0.95,
+      gpuWeight: highBudget ? 1.35 : 1.65,
+      ramWeight: 0.16,
+      storageWeight: 0.06,
+      monitorWeight: 0.18,
+      targetRamMax: ultraBudget ? 128 : highBudget ? 64 : 32,
+      targetStorageMax: ultraBudget ? 8 : highBudget ? 4 : 2,
+      preferCpuNames: highBudget ? ["Ryzen 9", "Core i9", "Core Ultra 9", "9950X3D", "7950X3D"] : ["7800X3D", "9800X3D", "Ryzen 7"],
+      blockWorkstationCpu: true,
+      blockWorkstationGpu: true,
+    };
+  }
+
+  if (purpose === "Streaming") {
+    return {
+      cpuWeight: 1.25,
+      gpuWeight: 1.35,
+      ramWeight: 0.25,
+      storageWeight: 0.12,
+      monitorWeight: 0.12,
+      targetRamMax: highBudget ? 128 : 64,
+      targetStorageMax: highBudget ? 8 : 4,
+      preferCpuNames: highBudget ? ["Ryzen 9", "Core i9", "Core Ultra 9"] : ["Ryzen 7", "Core i7"],
+      blockWorkstationCpu: true,
+      blockWorkstationGpu: true,
+    };
+  }
+
+  if (purpose === "Video Editing") {
+    return {
+      cpuWeight: 1.55,
+      gpuWeight: 1.05,
+      ramWeight: 0.42,
+      storageWeight: 0.3,
+      monitorWeight: 0.1,
+      targetRamMax: ultraBudget ? 256 : highBudget ? 128 : 64,
+      targetStorageMax: ultraBudget ? 16 : highBudget ? 8 : 4,
+      preferCpuNames: ["Ryzen 9", "Core i9", "Core Ultra 9", "Threadripper"],
+      blockWorkstationCpu: budget < 7000,
+      blockWorkstationGpu: true,
+    };
+  }
+
+  if (purpose === "AI / ML") {
+    return {
+      cpuWeight: 1.05,
+      gpuWeight: 1.95,
+      ramWeight: 0.65,
+      storageWeight: 0.28,
+      monitorWeight: 0.04,
+      targetRamMax: ultraBudget ? 1024 : highBudget ? 256 : 128,
+      targetStorageMax: ultraBudget ? 64 : highBudget ? 16 : 8,
+      preferCpuNames: ["Threadripper", "Ryzen 9", "Core Ultra 9", "Core i9"],
+      blockWorkstationCpu: budget < 8000,
+      blockWorkstationGpu: budget < 8000,
+    };
+  }
+
+  if (purpose === "Workstation") {
+    return {
+      cpuWeight: 1.8,
+      gpuWeight: 1.1,
+      ramWeight: 0.65,
+      storageWeight: 0.38,
+      monitorWeight: 0.05,
+      targetRamMax: ultraBudget ? 1024 : highBudget ? 256 : 128,
+      targetStorageMax: ultraBudget ? 64 : highBudget ? 16 : 8,
+      preferCpuNames: ["Threadripper", "Ryzen 9", "Core i9", "Core Ultra 9"],
+      blockWorkstationCpu: budget < 7000,
+      blockWorkstationGpu: budget < 12000,
+    };
+  }
+
+  if (BASIC_PURPOSES.includes(purpose)) {
+    return {
+      cpuWeight: 1.05,
+      gpuWeight: 0.15,
+      ramWeight: 0.35,
+      storageWeight: 0.28,
+      monitorWeight: 0.1,
+      targetRamMax: 32,
+      targetStorageMax: 2,
+      preferCpuNames: ["Ryzen 5", "Core i5", "Core i3", "5600G"],
+      blockWorkstationCpu: true,
+      blockWorkstationGpu: true,
+    };
+  }
+
+  return {
+    cpuWeight: 1.15,
+    gpuWeight: 1.2,
+    ramWeight: 0.25,
+    storageWeight: 0.16,
+    monitorWeight: 0.1,
+    targetRamMax: highBudget ? 128 : 64,
+    targetStorageMax: highBudget ? 8 : 4,
+    preferCpuNames: ["Ryzen 7", "Ryzen 9", "Core i7", "Core i9"],
+    blockWorkstationCpu: budget < 7000,
+    blockWorkstationGpu: budget < 10000,
+  };
+}
+
 function scoreBuild(build, purpose, budget) {
   const metric = getMetric(purpose);
-  const isBasicUse = BASIC_PURPOSES.includes(purpose);
-  const gpuWeight = isBasicUse ? 0.2 : purpose === "Gaming" ? (budget >= 5000 ? 1.25 : 1.55) : purpose === "AI / ML" ? 1.7 : 1.15;
-  const cpuWeight = isBasicUse ? 1.05 : purpose === "Gaming" ? (budget >= 5000 ? 1.35 : 0.9) : purpose === "AI / ML" ? 1.1 : 1.35;
-  const ramWeight = isBasicUse ? 0.3 : purpose === "Gaming" ? 0.18 : purpose === "AI / ML" ? 0.6 : 0.45;
-  const storageWeight = isBasicUse ? 0.35 : purpose === "Gaming" ? 0.12 : 0.25;
-  const valuePenalty = build.total / Math.max(budget, 1) * (isBasicUse ? 18 : 8);
-  const highBudgetCpuBoost =
-    budget >= 5000 && purpose === "Gaming" && build.cpu.name.includes("Ryzen 9")
-      ? 38
-      : budget >= 5000 && purpose === "Gaming" && build.cpu.name.includes("Core i9")
-      ? 34
-      : budget >= 5000 && purpose === "Gaming" && build.cpu.name.includes("Core Ultra 9")
-      ? 34
-      : 0;
+  const profile = getPurposeProfile(purpose, budget);
 
-  return build.gpu[metric] * gpuWeight + build.cpu[metric] * cpuWeight + build.ram.score * ramWeight + build.storage.score * storageWeight + (build.monitor?.score || 0) * 0.08 - valuePenalty + highBudgetCpuBoost;
+  const preferredCpuBoost = profile.preferCpuNames.some((name) => build.cpu.name.includes(name)) ? 42 : 0;
+  const ramOverkillPenalty = build.ram.sizeGB > profile.targetRamMax ? (build.ram.sizeGB - profile.targetRamMax) * 0.35 : 0;
+  const storageOverkillPenalty = build.storage.sizeTB > profile.targetStorageMax ? (build.storage.sizeTB - profile.targetStorageMax) * 10 : 0;
+  const budgetUseScore = Math.max(0, 1 - Math.abs(budget - build.total) / Math.max(budget, 1)) * 20;
+
+  return (
+    build.gpu[metric] * profile.gpuWeight +
+    build.cpu[metric] * profile.cpuWeight +
+    build.ram.score * profile.ramWeight +
+    build.storage.score * profile.storageWeight +
+    (build.monitor?.score || 0) * profile.monitorWeight +
+    preferredCpuBoost +
+    budgetUseScore -
+    ramOverkillPenalty -
+    storageOverkillPenalty
+  );
 }
 
 function generateBuild(settings) {
@@ -295,18 +405,27 @@ function generateBuild(settings) {
   const candidates = [];
   const isBasicUse = BASIC_PURPOSES.includes(purpose);
   const workstationMode = purpose === "AI / ML" || purpose === "Workstation" || purpose === "Video Editing";
+  const profile = getPurposeProfile(purpose, budget);
 
   const cpuPool = parts.cpu.filter((p) => {
     const brandOk = cpuPref === "No Preference" || p.brand === cpuPref;
-    const tierOk = workstationMode || p.tier !== "workstation";
-    return brandOk && tierOk;
+    const workstationOk = !profile.blockWorkstationCpu || p.tier !== "workstation";
+    const highBudgetGamingOk =
+      purpose !== "Gaming" ||
+      budget < 5000 ||
+      p.name.includes("Ryzen 9") ||
+      p.name.includes("Core i9") ||
+      p.name.includes("Core Ultra 9") ||
+      p.name.includes("7950X3D") ||
+      p.name.includes("9950X3D");
+    return brandOk && workstationOk && highBudgetGamingOk;
   });
 
   const gpuPool = parts.gpu.filter((p) => {
     const brandOk = gpuPref === "No Preference" || p.brand === gpuPref;
-    const tierOk = workstationMode || p.tier !== "workstation";
+    const workstationOk = !profile.blockWorkstationGpu || p.tier !== "workstation";
     const basicOk = !isBasicUse || p.brand === "Integrated" || p.price <= 300;
-    return brandOk && tierOk && basicOk;
+    return brandOk && workstationOk && basicOk;
   });
 
   for (const cpu of cpuPool) {
@@ -321,11 +440,11 @@ function generateBuild(settings) {
       for (const motherboard of motherboards) {
         const rams = parts.ram.filter((r) => {
           const platformOk = cpu.socket === "AM4" ? r.platform === "AM4" : cpu.socket === "sTR5" ? r.platform === "sTR5" : r.platform === "AM5/LGA1700";
-          return platformOk && r.sizeGB >= minRam;
+          return platformOk && r.sizeGB >= minRam && r.sizeGB <= profile.targetRamMax;
         });
 
         for (const ram of rams) {
-          const storages = parts.storage.filter((s) => s.sizeTB >= minStorage);
+          const storages = parts.storage.filter((s) => s.sizeTB >= minStorage && s.sizeTB <= profile.targetStorageMax);
           for (const storage of storages) {
             const cases = parts.case.filter((c) => {
               const colorOk = color === "No Preference" || c.color === color || (color === "Minimal" && c.color === "Black");
