@@ -1170,7 +1170,7 @@ const SEO_ARTICLES = [
     fps: ["1440p Gaming: Strong performance", "Upgrade path: AM5 platform recommended"],
     amazonQuery: "best PC build upgrade path AM5",
   }
-\];
+];
 
 function getArticleBySlug(slug) {
   return SEO_ARTICLES.find((article) => article.slug === slug);
