@@ -892,3 +892,4 @@ const styles = {
   blogCardText: { color: "#475569", lineHeight: 1.6, margin: "0 0 12px" },
   blogCardMeta: { color: "#2563eb", fontWeight: 900, fontSize: "13px" },
 };
+
