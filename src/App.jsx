@@ -649,10 +649,22 @@ function Home() {
 
   return (
     <div style={styles.page}>
+      <nav style={styles.nav}>
+        <a href="/" style={styles.logo}>AI PC Builder</a>
+        <div style={styles.navLinks}>
+          <a href="/blog" style={styles.navLink}>PC Build Guides</a>
+          <a href="/blog/best-pc-build-under-1500" style={styles.navLink}>Best Under $1500</a>
+        </div>
+      </nav>
+
       <section style={styles.hero}>
         <div style={styles.kicker}>AI PC Builder</div>
         <h1 style={styles.title}>Find the right PC build for your budget.</h1>
         <p style={styles.subtitle}>Get three smart build options: performance, value, and an alternative brand path.</p>
+        <div style={styles.heroActions}>
+          <a href="/blog" style={styles.ctaBlog}>Explore PC Build Guides</a>
+          <a href="/blog/best-pc-build-for-1440p-gaming" style={styles.ctaSecondary}>Best 1440p Gaming Build</a>
+        </div>
       </section>
 
       <main style={styles.layout}>
@@ -783,6 +795,13 @@ function BuildCard({ item, index, purpose }) {
 }
 
 const styles = {
+  nav: { maxWidth: "1200px", margin: "0 auto 28px", display: "flex", justifyContent: "space-between", alignItems: "center", gap: "18px", padding: "14px 18px", background: "rgba(17, 24, 39, 0.78)", border: "1px solid #243041", borderRadius: "18px", boxShadow: "0 14px 40px rgba(0,0,0,0.18)" },
+  logo: { color: "#ffffff", fontWeight: 900, textDecoration: "none", fontSize: "18px" },
+  navLinks: { display: "flex", gap: "14px", alignItems: "center", flexWrap: "wrap" },
+  navLink: { color: "#93c5fd", textDecoration: "none", fontWeight: 800, fontSize: "14px" },
+  heroActions: { display: "flex", justifyContent: "center", gap: "12px", flexWrap: "wrap", marginTop: "20px" },
+  ctaBlog: { display: "inline-flex", alignItems: "center", justifyContent: "center", padding: "13px 18px", background: "#0ea5e9", color: "#ffffff", borderRadius: "12px", textDecoration: "none", fontWeight: 900 },
+  ctaSecondary: { display: "inline-flex", alignItems: "center", justifyContent: "center", padding: "13px 18px", background: "#020617", border: "1px solid #334155", color: "#cbd5e1", borderRadius: "12px", textDecoration: "none", fontWeight: 900 },
   page: { minHeight: "100vh", background: "#0f172a", color: "#e5e7eb", fontFamily: "Inter, Arial, sans-serif", padding: "32px 20px 60px" },
   hero: { maxWidth: "980px", margin: "0 auto 28px", textAlign: "center" },
   kicker: { display: "inline-block", padding: "7px 12px", borderRadius: "999px", background: "rgba(37, 99, 235, 0.16)", color: "#93c5fd", fontSize: "13px", fontWeight: 900, marginBottom: "12px" },
@@ -843,4 +862,5 @@ const styles = {
   blogCardTitle: { fontSize: "20px", margin: "0 0 8px", color: "#0f172a" },
   blogCardText: { color: "#475569", lineHeight: 1.6, margin: "0 0 12px" },
   blogCardMeta: { color: "#2563eb", fontWeight: 900, fontSize: "13px" },
+};
 };
