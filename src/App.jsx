@@ -1,502 +1,686 @@
 import React, { useMemo, useState } from "react";
 
-const usageOptions = [
-  {
-    id: "basic",
-    title: "Everyday Home Use",
-    desc: "Web browsing, office work, online classes, video streaming"
-  },
-  {
-    id: "gaming",
-    title: "Gaming",
-    desc: "Esports, FPS games, AAA games, high refresh rate gaming"
-  },
-  {
-    id: "creator",
-    title: "Content Creation",
-    desc: "Video editing, design, streaming, 3D work, Adobe apps"
-  },
-  {
-    id: "heavy",
-    title: "Heavy Workstation",
-    desc: "AI workloads, rendering, local models, professional multitasking"
-  }
+const PURPOSES = {
+  home: "Home / Office / School",
+  esports: "Esports Gaming",
+  gaming1080p: "1080p Gaming",
+  gaming1440p: "1440p Gaming",
+  gaming4k: "4K Gaming",
+  streaming: "Gaming + Streaming",
+  creator: "Creator / Editing",
+  ai: "AI / CUDA / ML",
+};
+
+const STYLES = {
+  balanced: "Balanced",
+  performance: "Best Performance",
+  value: "Best Value",
+  amd: "AMD Build",
+  intel: "Intel CPU Build",
+  nvidia: "NVIDIA GPU Build",
+  noPreference: "No Brand Preference",
+};
+
+const cpus = [
+  { name: "Intel Core i3-14100F", brand: "Intel", price: 115, gaming: 58, productivity: 50, ai: 35, socket: "LGA1700", value: 91 },
+  { name: "AMD Ryzen 5 5600", brand: "AMD", price: 125, gaming: 62, productivity: 55, ai: 38, socket: "AM4", value: 95 },
+  { name: "Intel Core i5-12400F", brand: "Intel", price: 140, gaming: 66, productivity: 58, ai: 40, socket: "LGA1700", value: 94 },
+  { name: "AMD Ryzen 5 7600", brand: "AMD", price: 195, gaming: 78, productivity: 68, ai: 48, socket: "AM5", value: 91 },
+  { name: "Intel Core i5-13600K", brand: "Intel", price: 265, gaming: 84, productivity: 82, ai: 55, socket: "LGA1700", value: 85 },
+  { name: "Intel Core i7-14700K", brand: "Intel", price: 390, gaming: 90, productivity: 94, ai: 66, socket: "LGA1700", value: 78 },
+  { name: "AMD Ryzen 7 7800X3D", brand: "AMD", price: 370, gaming: 100, productivity: 78, ai: 58, socket: "AM5", value: 88 },
+  { name: "AMD Ryzen 9 7900X", brand: "AMD", price: 390, gaming: 88, productivity: 96, ai: 65, socket: "AM5", value: 81 },
+  { name: "Intel Core i9-14900K", brand: "Intel", price: 530, gaming: 94, productivity: 100, ai: 72, socket: "LGA1700", value: 70 },
+  { name: "AMD Ryzen 9 7950X3D", brand: "AMD", price: 590, gaming: 98, productivity: 98, ai: 70, socket: "AM5", value: 72 },
 ];
 
-function pick(options) {
-  return options[Math.floor(Math.random() * options.length)];
+const gpus = [
+  { name: "Intel Arc B580 12GB", brand: "Intel", price: 260, esports: 82, gaming1080p: 78, gaming1440p: 68, gaming4k: 42, creator: 55, ai: 35, value: 96, vram: 12 },
+  { name: "AMD Radeon RX 7600 XT 16GB", brand: "AMD", price: 320, esports: 84, gaming1080p: 78, gaming1440p: 65, gaming4k: 43, creator: 55, ai: 32, value: 89, vram: 16 },
+  { name: "NVIDIA GeForce RTX 4060 Ti 16GB", brand: "NVIDIA", price: 430, esports: 86, gaming1080p: 80, gaming1440p: 68, gaming4k: 45, creator: 70, ai: 70, value: 76, vram: 16 },
+  { name: "AMD Radeon RX 7700 XT 12GB", brand: "AMD", price: 410, esports: 89, gaming1080p: 86, gaming1440p: 78, gaming4k: 55, creator: 62, ai: 38, value: 91, vram: 12 },
+  { name: "AMD Radeon RX 7800 XT 16GB", brand: "AMD", price: 500, esports: 92, gaming1080p: 90, gaming1440p: 86, gaming4k: 66, creator: 68, ai: 42, value: 94, vram: 16 },
+  { name: "NVIDIA GeForce RTX 4070 Super 12GB", brand: "NVIDIA", price: 600, esports: 94, gaming1080p: 92, gaming1440p: 88, gaming4k: 70, creator: 84, ai: 86, value: 86, vram: 12 },
+  { name: "AMD Radeon RX 7900 GRE 16GB", brand: "AMD", price: 570, esports: 95, gaming1080p: 93, gaming1440p: 90, gaming4k: 73, creator: 72, ai: 45, value: 93, vram: 16 },
+  { name: "AMD Radeon RX 9070 XT 16GB", brand: "AMD", price: 650, esports: 96, gaming1080p: 95, gaming1440p: 93, gaming4k: 80, creator: 76, ai: 50, value: 90, vram: 16 },
+  { name: "AMD Radeon RX 7900 XT 20GB", brand: "AMD", price: 700, esports: 97, gaming1080p: 96, gaming1440p: 94, gaming4k: 83, creator: 78, ai: 48, value: 88, vram: 20 },
+  { name: "NVIDIA GeForce RTX 4070 Ti Super 16GB", brand: "NVIDIA", price: 800, esports: 97, gaming1080p: 97, gaming1440p: 95, gaming4k: 84, creator: 90, ai: 92, value: 82, vram: 16 },
+  { name: "AMD Radeon RX 7900 XTX 24GB", brand: "AMD", price: 900, esports: 98, gaming1080p: 98, gaming1440p: 97, gaming4k: 91, creator: 82, ai: 52, value: 84, vram: 24 },
+  { name: "NVIDIA GeForce RTX 4080 Super 16GB", brand: "NVIDIA", price: 1000, esports: 99, gaming1080p: 99, gaming1440p: 98, gaming4k: 94, creator: 96, ai: 98, value: 80, vram: 16 },
+  { name: "NVIDIA GeForce RTX 4090 24GB", brand: "NVIDIA", price: 1800, esports: 100, gaming1080p: 100, gaming1440p: 100, gaming4k: 100, creator: 100, ai: 100, value: 60, vram: 24 },
+];
+
+const motherboards = [
+  { name: "Budget B550 Motherboard", platform: "AM4", price: 95 },
+  { name: "B650 WiFi Motherboard", platform: "AM5", price: 170 },
+  { name: "Budget B760 Motherboard", platform: "LGA1700", price: 145 },
+  { name: "Z790 WiFi Motherboard", platform: "LGA1700", price: 220 },
+];
+
+const ramOptions = [
+  { name: "16GB DDR4", price: 45 },
+  { name: "32GB DDR4", price: 75 },
+  { name: "32GB DDR5", price: 105 },
+  { name: "64GB DDR5", price: 195 },
+];
+
+const storageOptions = [
+  { name: "1TB NVMe SSD", price: 65 },
+  { name: "2TB NVMe SSD", price: 120 },
+  { name: "4TB NVMe SSD", price: 250 },
+];
+
+const psuOptions = [
+  { name: "650W 80+ Gold PSU", price: 80, wattage: 650 },
+  { name: "750W 80+ Gold PSU", price: 105, wattage: 750 },
+  { name: "850W 80+ Gold PSU", price: 130, wattage: 850 },
+  { name: "1000W 80+ Gold PSU", price: 180, wattage: 1000 },
+];
+
+const caseOptions = [
+  { name: "Budget Airflow Case", price: 70 },
+  { name: "Mid Tower Airflow Case", price: 105 },
+  { name: "Premium Tempered Glass Case", price: 160 },
+];
+
+const coolerOptions = [
+  { name: "Basic Air Cooler", price: 35 },
+  { name: "Tower Air Cooler", price: 60 },
+  { name: "240mm AIO Liquid Cooler", price: 110 },
+  { name: "360mm AIO Liquid Cooler", price: 160 },
+];
+
+function getProfile(purpose) {
+  if (purpose === "home") return { cpuWeight: 0.45, gpuWeight: 0.15, valueWeight: 0.4, metric: "gaming1080p" };
+  if (purpose === "esports") return { cpuWeight: 0.38, gpuWeight: 0.47, valueWeight: 0.15, metric: "esports" };
+  if (purpose === "gaming1080p") return { cpuWeight: 0.35, gpuWeight: 0.5, valueWeight: 0.15, metric: "gaming1080p" };
+  if (purpose === "gaming1440p") return { cpuWeight: 0.3, gpuWeight: 0.58, valueWeight: 0.12, metric: "gaming1440p" };
+  if (purpose === "gaming4k") return { cpuWeight: 0.22, gpuWeight: 0.68, valueWeight: 0.1, metric: "gaming4k" };
+  if (purpose === "streaming") return { cpuWeight: 0.42, gpuWeight: 0.45, valueWeight: 0.13, metric: "gaming1440p" };
+  if (purpose === "creator") return { cpuWeight: 0.44, gpuWeight: 0.38, valueWeight: 0.18, metric: "creator" };
+  if (purpose === "ai") return { cpuWeight: 0.22, gpuWeight: 0.65, valueWeight: 0.13, metric: "ai" };
+  return { cpuWeight: 0.35, gpuWeight: 0.5, valueWeight: 0.15, metric: "gaming1440p" };
 }
 
-function chooseCPU(usage, budget) {
-  if (usage === "basic") {
-    if (budget < 700) return "Intel Core i3-13100";
-    if (budget < 1000) return pick(["Intel Core i5-13400", "AMD Ryzen 5 5600"]);
-    return pick(["Intel Core i5-14400", "AMD Ryzen 5 7600"]);
-  }
-
-  if (usage === "gaming") {
-    if (budget < 900) return pick(["AMD Ryzen 5 5600", "Intel Core i5-12400F"]);
-    if (budget < 1300) return pick(["AMD Ryzen 5 7600", "Intel Core i5-13400F"]);
-    if (budget < 1800) return pick(["AMD Ryzen 7 5800X3D", "Intel Core i5-13600KF"]);
-    if (budget < 2600) return pick(["AMD Ryzen 7 7800X3D", "Intel Core i7-14700KF"]);
-    return pick(["AMD Ryzen 9 7900X", "AMD Ryzen 7 7800X3D", "Intel Core i9-14900K"]);
-  }
-
-  if (usage === "creator") {
-    if (budget < 1200) return pick(["Intel Core i5-13600KF", "AMD Ryzen 7 5700X"]);
-    if (budget < 1800) return pick(["Intel Core i7-13700KF", "AMD Ryzen 7 7700X"]);
-    if (budget < 2600) return pick(["Intel Core i7-14700KF", "AMD Ryzen 9 7900X"]);
-    return pick(["Intel Core i9-14900K", "AMD Ryzen 9 7950X"]);
-  }
-
-  if (usage === "heavy") {
-    if (budget < 1800) return pick(["Intel Core i7-14700KF", "AMD Ryzen 9 7900X"]);
-    if (budget < 3000) return pick(["Intel Core i9-14900K", "AMD Ryzen 9 7950X"]);
-    return pick(["AMD Ryzen 9 9950X", "Intel Core i9-14900K"]);
-  }
-
-  return "Intel Core i5-13400";
+function chooseMotherboard(cpu) {
+  if (cpu.socket === "AM4") return motherboards.find((x) => x.platform === "AM4");
+  if (cpu.socket === "AM5") return motherboards.find((x) => x.platform === "AM5");
+  if (cpu.price < 300) return motherboards.find((x) => x.name.includes("B760"));
+  return motherboards.find((x) => x.name.includes("Z790"));
 }
 
-function chooseGPU(usage, budget) {
-  if (usage === "basic") {
-    if (budget < 900) return "Integrated Graphics";
-    return pick(["NVIDIA RTX 3050", "AMD Radeon RX 6600"]);
-  }
-
-  if (usage === "gaming") {
-    if (budget < 900) return pick(["NVIDIA RTX 4060", "AMD Radeon RX 7600"]);
-    if (budget < 1400) return pick(["NVIDIA RTX 4060 Ti", "AMD Radeon RX 7700 XT"]);
-    if (budget < 1900) return pick(["NVIDIA RTX 4070 Super", "AMD Radeon RX 7800 XT"]);
-    if (budget < 2800) return pick(["NVIDIA RTX 4070 Ti Super", "AMD Radeon RX 7900 XT"]);
-    return pick(["NVIDIA RTX 4080 Super", "AMD Radeon RX 7900 XTX"]);
-  }
-
-  if (usage === "creator") {
-    if (budget < 1200) return "NVIDIA RTX 4060";
-    if (budget < 1800) return "NVIDIA RTX 4060 Ti 16GB";
-    if (budget < 2600) return "NVIDIA RTX 4070 Ti Super";
-    return "NVIDIA RTX 4080 Super";
-  }
-
-  if (usage === "heavy") {
-    if (budget < 2500) return "NVIDIA RTX 4070 Ti Super";
-    if (budget < 4000) return "NVIDIA RTX 4080 Super";
-    return "NVIDIA RTX 4090";
-  }
-
-  return "NVIDIA RTX 4060";
+function chooseRam(cpu, purpose, budget) {
+  if (purpose === "home" && budget < 900) return ramOptions.find((x) => x.name === "16GB DDR4");
+  if (purpose === "creator" || purpose === "ai" || budget >= 2600) return ramOptions.find((x) => x.name === "64GB DDR5");
+  if (cpu.socket === "AM4") return ramOptions.find((x) => x.name === "32GB DDR4");
+  return ramOptions.find((x) => x.name === "32GB DDR5");
 }
 
-function chooseRAM(usage, budget) {
-  if (usage === "basic") return budget < 900 ? "16GB DDR4" : "16GB DDR5";
-  if (usage === "gaming") return budget < 1600 ? "32GB DDR4 or DDR5" : "32GB DDR5";
-  if (usage === "creator") return budget < 2200 ? "32GB DDR5" : "64GB DDR5";
-  if (usage === "heavy") return budget < 3000 ? "64GB DDR5" : "128GB DDR5";
-  return "32GB DDR5";
-}
-
-function chooseStorage(usage, budget) {
-  if (usage === "basic") return budget < 800 ? "500GB NVMe SSD" : "1TB NVMe SSD";
-  if (usage === "gaming") return budget < 1600 ? "1TB NVMe SSD" : "2TB NVMe SSD";
-  if (usage === "creator") return budget < 2200 ? "2TB NVMe SSD" : "2TB NVMe SSD + 4TB Storage";
-  if (usage === "heavy") return "2TB Gen4 NVMe SSD + Extra Storage";
-  return "1TB NVMe SSD";
-}
-
-function chooseMotherboard(cpu, budget) {
-  if (cpu.includes("5600") || cpu.includes("5700") || cpu.includes("5800")) return "B550 Motherboard";
-  if (
-    cpu.includes("7600") ||
-    cpu.includes("7700") ||
-    cpu.includes("7800") ||
-    cpu.includes("7900") ||
-    cpu.includes("7950") ||
-    cpu.includes("9950")
-  ) {
-    return budget > 2500 ? "X670 Motherboard" : "B650 Motherboard";
-  }
-  if (cpu.includes("i3") || cpu.includes("i5")) return "B760 Motherboard";
-  if (cpu.includes("i7") || cpu.includes("i9")) return budget > 2500 ? "Z790 Motherboard" : "B760 or Z790 Motherboard";
-  return "Compatible Motherboard";
+function chooseStorage(purpose, budget) {
+  if (budget >= 2800 || purpose === "creator" || purpose === "ai") return storageOptions.find((x) => x.name === "2TB NVMe SSD");
+  return storageOptions.find((x) => x.name === "1TB NVMe SSD");
 }
 
 function choosePSU(gpu) {
-  if (gpu.includes("Integrated")) return "500W 80+ Bronze";
-  if (gpu.includes("3050") || gpu.includes("4060") || gpu.includes("6600") || gpu.includes("7600")) return "650W 80+ Bronze or Gold";
-  if (gpu.includes("4070") || gpu.includes("7700") || gpu.includes("7800")) return "750W 80+ Gold";
-  if (gpu.includes("4080") || gpu.includes("7900")) return "850W 80+ Gold";
-  if (gpu.includes("4090")) return "1000W 80+ Gold";
-  return "750W 80+ Gold";
-}
-
-function chooseCooler(cpu, usage) {
-  if (usage === "basic") return "Stock Cooler or Air Cooler";
-  if (cpu.includes("i9") || cpu.includes("7950") || cpu.includes("9950")) return "360mm Liquid Cooler";
-  if (cpu.includes("i7") || cpu.includes("7900") || cpu.includes("7800")) return "240mm Liquid Cooler or Premium Air Cooler";
-  return "Tower Air Cooler";
+  if (gpu.price >= 1000) return psuOptions.find((x) => x.wattage === 1000);
+  if (gpu.price >= 700) return psuOptions.find((x) => x.wattage === 850);
+  if (gpu.price >= 450) return psuOptions.find((x) => x.wattage === 750);
+  return psuOptions.find((x) => x.wattage === 650);
 }
 
 function chooseCase(budget) {
-  if (budget < 900) return "Compact Airflow Case";
-  if (budget < 1800) return "Mid Tower Airflow Case";
-  if (budget < 3000) return "Premium Glass Airflow Case";
-  return "High-End Showcase Case";
+  if (budget >= 2600) return caseOptions.find((x) => x.name.includes("Premium"));
+  if (budget >= 1100) return caseOptions.find((x) => x.name.includes("Mid"));
+  return caseOptions.find((x) => x.name.includes("Budget"));
 }
 
-function getRecommendationNote(usage) {
-  if (usage === "basic") {
-    return "For everyday home use, the system prioritizes reliability, SSD speed, and value instead of unnecessary graphics power.";
-  }
-
-  if (usage === "gaming") {
-    return "For gaming, the system prioritizes GPU performance first, then CPU performance for better frame rates.";
-  }
-
-  if (usage === "creator") {
-    return "For content creation, NVIDIA GPUs are prioritized because of better compatibility with many editing and rendering applications.";
-  }
-
-  if (usage === "heavy") {
-    return "For workstation use, the system prioritizes CPU cores, GPU power, memory capacity, and power stability.";
-  }
-
-  return "This configuration is balanced for general use.";
+function chooseCooler(cpu, budget) {
+  if (cpu.name.includes("i9") || cpu.name.includes("7950")) return coolerOptions.find((x) => x.name.includes("360mm"));
+  if (cpu.name.includes("i7") || cpu.name.includes("7900") || budget >= 1800) return coolerOptions.find((x) => x.name.includes("240mm"));
+  if (cpu.price >= 190) return coolerOptions.find((x) => x.name.includes("Tower"));
+  return coolerOptions.find((x) => x.name.includes("Basic"));
 }
 
-function buildPC(usage, budget) {
-  const cpu = chooseCPU(usage, budget);
-  const gpu = chooseGPU(usage, budget);
+function isAllowedByStyle(cpu, gpu, style) {
+  if (style === "amd") return cpu.brand === "AMD" && gpu.brand === "AMD";
+  if (style === "intel") return cpu.brand === "Intel";
+  if (style === "nvidia") return gpu.brand === "NVIDIA";
+  return true;
+}
 
-  return {
-    cpu,
-    gpu,
-    ram: chooseRAM(usage, budget),
-    storage: chooseStorage(usage, budget),
-    motherboard: chooseMotherboard(cpu, budget),
-    psu: choosePSU(gpu),
-    cooler: chooseCooler(cpu, usage),
-    case: chooseCase(budget),
-    note: getRecommendationNote(usage)
-  };
+function generateCandidates(budget, purpose, style) {
+  const candidates = [];
+
+  for (const cpu of cpus) {
+    for (const gpu of gpus) {
+      if (!isAllowedByStyle(cpu, gpu, style)) continue;
+      if (purpose === "home" && gpu.price > 430) continue;
+      if (purpose === "ai" && gpu.brand !== "NVIDIA" && style !== "amd") continue;
+
+      const motherboard = chooseMotherboard(cpu);
+      const ram = chooseRam(cpu, purpose, budget);
+      const storage = chooseStorage(purpose, budget);
+      const psu = choosePSU(gpu);
+      const pcCase = chooseCase(budget);
+      const cooler = chooseCooler(cpu, budget);
+
+      const total = cpu.price + gpu.price + motherboard.price + ram.price + storage.price + psu.price + pcCase.price + cooler.price;
+
+      if (total > budget) continue;
+      if (budget > 1200 && total < budget * 0.58) continue;
+
+      candidates.push({ cpu, gpu, motherboard, ram, storage, psu, case: pcCase, cooler, total });
+    }
+  }
+
+  return candidates;
+}
+
+function scoreBuild(build, purpose, budget, style, target) {
+  const profile = getProfile(purpose);
+  const gpuPerf = build.gpu[profile.metric];
+  const cpuPerf = purpose === "creator" ? build.cpu.productivity : purpose === "ai" ? build.cpu.ai : build.cpu.gaming;
+
+  const performanceScore = gpuPerf * profile.gpuWeight + cpuPerf * profile.cpuWeight;
+  const valueScore = ((performanceScore / build.total) * 1000 + build.gpu.value + build.cpu.value) / 3;
+  const budgetUseScore = Math.max(0, 100 - (Math.abs(budget - build.total) / budget) * 100);
+
+  let brandScore = 0;
+  if (style === "amd") brandScore += (build.cpu.brand === "AMD" ? 12 : 0) + (build.gpu.brand === "AMD" ? 12 : 0);
+  if (style === "intel") brandScore += build.cpu.brand === "Intel" ? 18 : 0;
+  if (style === "nvidia") brandScore += build.gpu.brand === "NVIDIA" ? 18 : 0;
+
+  if (purpose === "ai" && build.gpu.brand === "NVIDIA") brandScore += 20;
+  if (["esports", "gaming1080p", "gaming1440p"].includes(purpose) && build.gpu.brand === "AMD") brandScore += 6;
+  if (purpose === "home" && build.total < 1000) brandScore += 8;
+
+  let targetBonus = 0;
+  if (target === "performance") targetBonus = performanceScore * 0.32;
+  if (target === "value") targetBonus = valueScore * 0.52;
+  if (target === "alternative") {
+    if (build.cpu.brand === "Intel") targetBonus += 10;
+    if (build.gpu.brand === "AMD" || build.gpu.brand === "Intel") targetBonus += 14;
+    if (build.gpu.brand !== "NVIDIA") targetBonus += 7;
+  }
+
+  return performanceScore * 0.58 + valueScore * profile.valueWeight + budgetUseScore * 0.16 + brandScore + targetBonus;
+}
+
+function selectBuilds(candidates, purpose, budget, style) {
+  if (!candidates.length) return [];
+
+  const byPerformance = [...candidates].sort((a, b) => scoreBuild(b, purpose, budget, style, "performance") - scoreBuild(a, purpose, budget, style, "performance"))[0];
+
+  const byValue = [...candidates]
+    .filter((x) => x.cpu.name !== byPerformance.cpu.name || x.gpu.name !== byPerformance.gpu.name)
+    .sort((a, b) => scoreBuild(b, purpose, budget, style, "value") - scoreBuild(a, purpose, budget, style, "value"))[0];
+
+  const alternativePool = [...candidates].filter((x) => x.cpu.brand !== byPerformance.cpu.brand || x.gpu.brand !== byPerformance.gpu.brand);
+  const byAlternative = alternativePool.sort((a, b) => scoreBuild(b, purpose, budget, style, "alternative") - scoreBuild(a, purpose, budget, style, "alternative"))[0];
+
+  const output = [
+    byPerformance && { tag: "Best Performance", build: byPerformance },
+    byValue && { tag: "Best Value", build: byValue },
+    byAlternative && { tag: "Alternative Pick", build: byAlternative },
+  ].filter(Boolean);
+
+  const unique = [];
+  const seen = new Set();
+
+  for (const item of output) {
+    const key = `${item.build.cpu.name}-${item.build.gpu.name}`;
+    if (!seen.has(key)) {
+      unique.push(item);
+      seen.add(key);
+    }
+  }
+
+  return unique.slice(0, 3);
+}
+
+function getAffiliateUrl(query, tag) {
+  const affiliateTag = encodeURIComponent(tag || "yourtag-20");
+  return `https://www.amazon.com/s?k=${encodeURIComponent(query)}&tag=${affiliateTag}`;
+}
+
+function getReason(tag, build, purpose) {
+  if (tag === "Best Performance") {
+    return `This option uses more of the budget for raw performance, centered around the ${build.gpu.name} and ${build.cpu.name}.`;
+  }
+
+  if (tag === "Best Value") {
+    return `This option focuses on price-to-performance, avoiding unnecessary overspending while still matching the selected use case.`;
+  }
+
+  if (purpose === "ai") {
+    return `This is the closest alternative path while still keeping AI and workstation needs in mind.`;
+  }
+
+  return `This gives users a real second path instead of always showing the same CPU or GPU brand.`;
 }
 
 export default function App() {
-  const [usage, setUsage] = useState("gaming");
   const [budget, setBudget] = useState(1500);
-  const [result, setResult] = useState(null);
+  const [purpose, setPurpose] = useState("gaming1440p");
+  const [style, setStyle] = useState("balanced");
+  const [affiliateTag, setAffiliateTag] = useState("yourtag-20");
 
-  const selectedUsage = useMemo(() => {
-    return usageOptions.find((item) => item.id === usage);
-  }, [usage]);
+  const builds = useMemo(() => {
+    let candidates = generateCandidates(budget, purpose, style);
 
-  function handleGenerate() {
-    setResult(buildPC(usage, Number(budget)));
-  }
+    if (!candidates.length && style !== "balanced") {
+      candidates = generateCandidates(budget, purpose, "balanced");
+    }
+
+    return selectBuilds(candidates, purpose, budget, style);
+  }, [budget, purpose, style]);
 
   return (
     <div style={styles.page}>
-      <div style={styles.container}>
-        <div style={styles.hero}>
-          <div style={styles.badge}>Custom PC Builder</div>
-          <h1 style={styles.title}>Find the right PC configuration</h1>
-          <p style={styles.subtitle}>
-            Choose your usage and budget. The recommendation logic will match the CPU, GPU, memory,
-            storage, motherboard, power supply, cooling, and case.
-          </p>
-        </div>
+      <section style={styles.hero}>
+        <div style={styles.kicker}>AI PC Builder</div>
+        <h1 style={styles.title}>Find the right PC build for your budget.</h1>
+        <p style={styles.subtitle}>
+          Compare performance, value, and alternative build paths without locking every recommendation into the same brand.
+        </p>
+      </section>
 
-        <div style={styles.layout}>
-          <div style={styles.panel}>
-            <h2 style={styles.panelTitle}>1. Select usage</h2>
+      <main style={styles.layout}>
+        <aside style={styles.panel}>
+          <h2 style={styles.panelTitle}>Build Settings</h2>
 
-            <div style={styles.optionsGrid}>
-              {usageOptions.map((item) => {
-                const active = usage === item.id;
-
-                return (
-                  <button
-                    key={item.id}
-                    type="button"
-                    onClick={() => setUsage(item.id)}
-                    style={{
-                      ...styles.optionCard,
-                      ...(active ? styles.optionCardActive : {})
-                    }}
-                  >
-                    <div style={styles.optionTitle}>{item.title}</div>
-                    <div style={styles.optionDesc}>{item.desc}</div>
-                  </button>
-                );
-              })}
-            </div>
-
-            <div style={styles.budgetSection}>
-              <h2 style={styles.panelTitle}>2. Select budget</h2>
-
-              <div style={styles.budgetRow}>
-                <span style={styles.smallText}>Budget</span>
-                <span style={styles.budgetValue}>${budget}</span>
-              </div>
-
+          <div style={styles.field}>
+            <label style={styles.label}>Budget</label>
+            <div style={styles.budgetRow}>
               <input
+                style={styles.range}
                 type="range"
-                min="500"
+                min="600"
                 max="5000"
                 step="100"
                 value={budget}
-                onChange={(event) => setBudget(event.target.value)}
-                style={styles.range}
+                onChange={(e) => setBudget(Number(e.target.value))}
               />
-
-              <div style={styles.rangeLabels}>
-                <span>$500</span>
-                <span>$5000</span>
-              </div>
+              <div style={styles.budgetBox}>${budget}</div>
             </div>
-
-            <button type="button" onClick={handleGenerate} style={styles.generateButton}>
-              Generate Recommendation
-            </button>
           </div>
 
-          <div style={styles.panel}>
-            <div style={styles.resultHeader}>
-              <div>
-                <h2 style={styles.panelTitle}>Recommended Build</h2>
-                <p style={styles.smallText}>
-                  Current profile: {selectedUsage?.title} / ${budget}
-                </p>
-              </div>
-
-              {result && (
-                <div style={styles.totalBox}>
-                  <div style={styles.label}>Budget</div>
-                  <div style={styles.total}>${budget}</div>
-                </div>
-              )}
-            </div>
-
-            {!result && (
-              <div style={styles.empty}>
-                Select a usage profile and budget, then generate your recommendation.
-              </div>
-            )}
-
-            {result && (
-              <>
-                <div style={styles.partsGrid}>
-                  <Part label="CPU" value={result.cpu} />
-                  <Part label="GPU" value={result.gpu} />
-                  <Part label="Memory" value={result.ram} />
-                  <Part label="Storage" value={result.storage} />
-                  <Part label="Motherboard" value={result.motherboard} />
-                  <Part label="Power Supply" value={result.psu} />
-                  <Part label="Cooling" value={result.cooler} />
-                  <Part label="Case" value={result.case} />
-                </div>
-
-                <div style={styles.noteBox}>
-                  <strong>Recommendation Note:</strong> {result.note}
-                </div>
-              </>
-            )}
+          <div style={styles.field}>
+            <label style={styles.label}>Main Use</label>
+            <select style={styles.select} value={purpose} onChange={(e) => setPurpose(e.target.value)}>
+              {Object.entries(PURPOSES).map(([key, label]) => (
+                <option key={key} value={key}>{label}</option>
+              ))}
+            </select>
           </div>
-        </div>
-      </div>
+
+          <div style={styles.field}>
+            <label style={styles.label}>Preferred Style</label>
+            <select style={styles.select} value={style} onChange={(e) => setStyle(e.target.value)}>
+              {Object.entries(STYLES).map(([key, label]) => (
+                <option key={key} value={key}>{label}</option>
+              ))}
+            </select>
+          </div>
+
+          <div style={styles.field}>
+            <label style={styles.label}>Amazon Affiliate Tag</label>
+            <input
+              style={styles.input}
+              value={affiliateTag}
+              onChange={(e) => setAffiliateTag(e.target.value)}
+              placeholder="yourtag-20"
+            />
+          </div>
+
+          <div style={styles.tip}>
+            Replace the default tag with your real Amazon Associates tag. Later you can add Newegg, Best Buy, Micro Center, or custom sponsored links.
+          </div>
+        </aside>
+
+        <section style={styles.results}>
+          <div style={styles.summaryGrid}>
+            <Summary label="Budget" value={`$${budget}`} />
+            <Summary label="Use Case" value={PURPOSES[purpose]} />
+            <Summary label="Mode" value={STYLES[style]} />
+          </div>
+
+          {builds.length === 0 ? (
+            <div style={styles.empty}>No valid build found. Try increasing the budget or switching to Balanced mode.</div>
+          ) : (
+            builds.map((item, index) => (
+              <BuildCard key={`${item.tag}-${item.build.cpu.name}-${item.build.gpu.name}`} item={item} index={index} purpose={purpose} affiliateTag={affiliateTag} />
+            ))
+          )}
+        </section>
+      </main>
     </div>
   );
 }
 
-function Part({ label, value }) {
+function Summary({ label, value }) {
   return (
-    <div style={styles.partCard}>
-      <div style={styles.label}>{label}</div>
-      <div style={styles.value}>{value}</div>
+    <div style={styles.summaryCard}>
+      <div style={styles.summaryLabel}>{label}</div>
+      <div style={styles.summaryValue}>{value}</div>
     </div>
+  );
+}
+
+function BuildCard({ item, index, purpose, affiliateTag }) {
+  const { tag, build } = item;
+
+  const list = [
+    ["CPU", build.cpu.name, build.cpu.brand, build.cpu.price],
+    ["GPU", build.gpu.name, `${build.gpu.brand} · ${build.gpu.vram}GB VRAM`, build.gpu.price],
+    ["Motherboard", build.motherboard.name, build.cpu.socket, build.motherboard.price],
+    ["Memory", build.ram.name, "RAM", build.ram.price],
+    ["Storage", build.storage.name, "SSD", build.storage.price],
+    ["Power Supply", build.psu.name, `${build.psu.wattage}W`, build.psu.price],
+    ["Case", build.case.name, "Airflow", build.case.price],
+    ["Cooler", build.cooler.name, "Cooling", build.cooler.price],
+  ];
+
+  const shopQuery = `${build.cpu.name} ${build.gpu.name} PC build`;
+  const compareQuery = `${build.cpu.name} ${build.gpu.name}`;
+
+  return (
+    <article style={styles.buildCard}>
+      <div style={styles.resultHeader}>
+        <div>
+          <div style={styles.badge}>{index + 1}. {tag}</div>
+          <h2 style={styles.buildTitle}>{build.cpu.brand} CPU + {build.gpu.brand} GPU Build</h2>
+          <p style={styles.smallText}>{build.cpu.name} / {build.gpu.name}</p>
+        </div>
+        <div style={styles.totalBox}>
+          <div style={styles.label}>Estimated Total</div>
+          <div style={styles.total}>${Math.round(build.total)}</div>
+        </div>
+      </div>
+
+      <div style={styles.partsGrid}>
+        {list.map(([type, name, meta, price]) => (
+          <div key={`${type}-${name}`} style={styles.partCard}>
+            <div style={styles.partType}>{type}</div>
+            <div style={styles.partName}>{name}</div>
+            <div style={styles.partMeta}>{meta} · ${price}</div>
+          </div>
+        ))}
+      </div>
+
+      <div style={styles.reason}>{getReason(tag, build, purpose)}</div>
+
+      <div style={styles.actions}>
+        <a style={styles.primaryLink} href={getAffiliateUrl(shopQuery, affiliateTag)} target="_blank" rel="noreferrer nofollow sponsored">
+          Shop Build Parts
+        </a>
+        <a style={styles.secondaryLink} href={getAffiliateUrl(compareQuery, affiliateTag)} target="_blank" rel="noreferrer nofollow sponsored">
+          Compare Prices
+        </a>
+      </div>
+    </article>
   );
 }
 
 const styles = {
   page: {
     minHeight: "100vh",
-    background: "#f8fafc",
-    color: "#0f172a",
-    padding: "40px 20px"
-  },
-  container: {
-    width: "100%",
-    maxWidth: "1180px",
-    margin: "0 auto"
+    background: "#0f172a",
+    color: "#e5e7eb",
+    fontFamily: "Inter, Arial, sans-serif",
+    padding: "32px 20px 60px",
   },
   hero: {
+    maxWidth: "980px",
+    margin: "0 auto 28px",
     textAlign: "center",
-    marginBottom: "32px"
   },
-  badge: {
-    display: "inline-flex",
-    padding: "8px 14px",
+  kicker: {
+    display: "inline-block",
+    padding: "7px 12px",
     borderRadius: "999px",
-    background: "#ffffff",
-    boxShadow: "0 8px 25px rgba(15,23,42,0.08)",
-    fontWeight: 800,
-    fontSize: "14px",
-    marginBottom: "18px"
+    background: "rgba(37, 99, 235, 0.16)",
+    color: "#93c5fd",
+    fontSize: "13px",
+    fontWeight: 900,
+    marginBottom: "12px",
   },
   title: {
-    fontSize: "46px",
-    margin: "0 0 8px",
-    letterSpacing: "-1px"
+    margin: 0,
+    color: "#ffffff",
+    fontSize: "48px",
+    lineHeight: 1.05,
+    letterSpacing: "-1.5px",
   },
   subtitle: {
-    color: "#64748b",
+    maxWidth: "760px",
+    margin: "14px auto 0",
+    color: "#cbd5e1",
     fontSize: "18px",
-    maxWidth: "820px",
-    margin: "0 auto",
-    lineHeight: 1.45
   },
   layout: {
+    maxWidth: "1200px",
+    margin: "0 auto",
     display: "grid",
-    gridTemplateColumns: "420px minmax(0, 1fr)",
-    gap: "32px",
-    alignItems: "start"
+    gridTemplateColumns: "360px 1fr",
+    gap: "24px",
+    alignItems: "start",
   },
   panel: {
-    background: "#ffffff",
-    borderRadius: "24px",
-    padding: "30px",
-    boxShadow: "0 14px 40px rgba(15,23,42,0.08)"
+    background: "#111827",
+    border: "1px solid #243041",
+    borderRadius: "20px",
+    padding: "22px",
+    position: "sticky",
+    top: "20px",
+    boxShadow: "0 20px 50px rgba(0,0,0,0.25)",
   },
   panelTitle: {
-    margin: "0 0 14px",
-    fontSize: "24px"
+    margin: "0 0 18px",
+    color: "#ffffff",
+    fontSize: "22px",
   },
-  optionsGrid: {
-    display: "grid",
-    gap: "12px"
+  field: {
+    marginBottom: "18px",
   },
-  optionCard: {
-    textAlign: "left",
-    padding: "16px",
-    borderRadius: "16px",
-    border: "1px solid #e2e8f0",
-    background: "#f8fafc",
-    cursor: "pointer"
-  },
-  optionCardActive: {
-    border: "2px solid #2563eb",
-    background: "#eff6ff"
-  },
-  optionTitle: {
-    fontSize: "16px",
+  label: {
+    display: "block",
+    color: "#94a3b8",
+    fontSize: "12px",
     fontWeight: 800,
-    marginBottom: "6px"
-  },
-  optionDesc: {
-    fontSize: "13px",
-    color: "#64748b",
-    lineHeight: 1.45
-  },
-  budgetSection: {
-    marginTop: "26px",
-    paddingTop: "20px",
-    borderTop: "1px solid #e2e8f0"
+    textTransform: "uppercase",
+    letterSpacing: "0.5px",
+    marginBottom: "8px",
   },
   budgetRow: {
-    display: "flex",
-    justifyContent: "space-between",
+    display: "grid",
+    gridTemplateColumns: "1fr 90px",
+    gap: "10px",
     alignItems: "center",
-    marginBottom: "12px"
   },
-  budgetValue: {
-    fontSize: "28px",
+  budgetBox: {
+    background: "#020617",
+    border: "1px solid #334155",
+    color: "#93c5fd",
+    borderRadius: "12px",
+    padding: "10px",
+    textAlign: "center",
     fontWeight: 900,
-    color: "#2563eb"
   },
   range: {
-    width: "100%"
-  },
-  rangeLabels: {
-    display: "flex",
-    justifyContent: "space-between",
-    color: "#64748b",
-    fontSize: "13px"
-  },
-  generateButton: {
-    marginTop: "24px",
     width: "100%",
-    padding: "16px",
-    borderRadius: "16px",
-    border: "none",
-    background: "#2563eb",
+  },
+  select: {
+    width: "100%",
+    padding: "12px 14px",
+    borderRadius: "12px",
+    border: "1px solid #334155",
+    background: "#020617",
     color: "#ffffff",
-    fontSize: "16px",
+    fontSize: "15px",
+    outline: "none",
+  },
+  input: {
+    width: "100%",
+    padding: "12px 14px",
+    borderRadius: "12px",
+    border: "1px solid #334155",
+    background: "#020617",
+    color: "#ffffff",
+    fontSize: "15px",
+    outline: "none",
+  },
+  tip: {
+    background: "rgba(56, 189, 248, 0.09)",
+    border: "1px solid rgba(56, 189, 248, 0.25)",
+    color: "#cbd5e1",
+    borderRadius: "14px",
+    padding: "14px",
+    fontSize: "13px",
+  },
+  results: {
+    display: "grid",
+    gap: "20px",
+  },
+  summaryGrid: {
+    display: "grid",
+    gridTemplateColumns: "repeat(3, 1fr)",
+    gap: "14px",
+  },
+  summaryCard: {
+    background: "#111827",
+    border: "1px solid #243041",
+    borderRadius: "18px",
+    padding: "16px",
+  },
+  summaryLabel: {
+    color: "#94a3b8",
+    fontSize: "13px",
+    marginBottom: "4px",
+  },
+  summaryValue: {
+    color: "#ffffff",
+    fontSize: "18px",
     fontWeight: 900,
-    cursor: "pointer"
+  },
+  buildCard: {
+    background: "#111827",
+    border: "1px solid #243041",
+    borderRadius: "20px",
+    padding: "22px",
+    boxShadow: "0 20px 50px rgba(0,0,0,0.25)",
   },
   resultHeader: {
     display: "flex",
     justifyContent: "space-between",
-    gap: "16px",
-    alignItems: "center",
-    marginBottom: "18px"
+    gap: "18px",
+    alignItems: "flex-start",
+    marginBottom: "18px",
+  },
+  badge: {
+    display: "inline-flex",
+    padding: "6px 10px",
+    borderRadius: "999px",
+    background: "rgba(56, 189, 248, 0.12)",
+    color: "#7dd3fc",
+    border: "1px solid rgba(56, 189, 248, 0.35)",
+    fontSize: "12px",
+    fontWeight: 900,
+    marginBottom: "8px",
+  },
+  buildTitle: {
+    margin: 0,
+    color: "#ffffff",
+    fontSize: "24px",
   },
   smallText: {
-    margin: 0,
-    color: "#64748b",
-    fontSize: "14px"
+    margin: "5px 0 0",
+    color: "#94a3b8",
+    fontSize: "14px",
   },
   totalBox: {
-    background: "#0f172a",
-    color: "#ffffff",
-    borderRadius: "18px",
+    background: "#020617",
+    border: "1px solid #334155",
+    borderRadius: "16px",
     padding: "14px 18px",
+    textAlign: "center",
     minWidth: "150px",
-    textAlign: "center"
   },
   total: {
+    color: "#86efac",
     fontSize: "25px",
-    fontWeight: 900
-  },
-  label: {
-    fontSize: "12px",
-    textTransform: "uppercase",
-    color: "#64748b",
-    fontWeight: 800,
-    letterSpacing: "0.5px"
+    fontWeight: 900,
   },
   partsGrid: {
     display: "grid",
     gridTemplateColumns: "repeat(2, minmax(0, 1fr))",
-    gap: "14px"
+    gap: "14px",
+    marginBottom: "16px",
   },
   partCard: {
-    padding: "16px",
-    borderRadius: "18px",
-    background: "#f8fafc",
-    border: "1px solid #e2e8f0"
-  },
-  value: {
-    fontWeight: 900,
-    marginTop: "6px",
-    fontSize: "16px",
-    lineHeight: 1.35
-  },
-  noteBox: {
-    marginTop: "20px",
-    padding: "16px",
-    background: "#fffbeb",
-    border: "1px solid #fde68a",
+    background: "#020617",
+    border: "1px solid #243041",
     borderRadius: "16px",
-    color: "#92400e",
-    fontSize: "14px",
-    lineHeight: 1.5
+    padding: "16px",
+  },
+  partType: {
+    color: "#94a3b8",
+    fontSize: "12px",
+    fontWeight: 800,
+    textTransform: "uppercase",
+    letterSpacing: "0.5px",
+    marginBottom: "6px",
+  },
+  partName: {
+    color: "#ffffff",
+    fontWeight: 900,
+    marginBottom: "5px",
+  },
+  partMeta: {
+    color: "#94a3b8",
+    fontSize: "13px",
+  },
+  reason: {
+    background: "rgba(99, 102, 241, 0.1)",
+    border: "1px solid rgba(99, 102, 241, 0.3)",
+    color: "#cbd5e1",
+    borderRadius: "14px",
+    padding: "14px",
+    marginBottom: "16px",
+  },
+  actions: {
+    display: "grid",
+    gridTemplateColumns: "repeat(2, 1fr)",
+    gap: "12px",
+  },
+  primaryLink: {
+    display: "inline-flex",
+    justifyContent: "center",
+    alignItems: "center",
+    textDecoration: "none",
+    padding: "13px 14px",
+    borderRadius: "12px",
+    background: "#f97316",
+    color: "#ffffff",
+    fontWeight: 900,
+  },
+  secondaryLink: {
+    display: "inline-flex",
+    justifyContent: "center",
+    alignItems: "center",
+    textDecoration: "none",
+    padding: "13px 14px",
+    borderRadius: "12px",
+    background: "#020617",
+    border: "1px solid #334155",
+    color: "#cbd5e1",
+    fontWeight: 900,
   },
   empty: {
-    padding: "28px",
-    borderRadius: "18px",
-    background: "#fff7ed",
-    color: "#9a3412",
-    fontWeight: 800
-  }
+    background: "#111827",
+    border: "1px solid #243041",
+    borderRadius: "20px",
+    padding: "22px",
+    color: "#cbd5e1",
+  },
 };
