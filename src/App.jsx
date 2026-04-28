@@ -1,6 +1,16 @@
 import React, { useMemo, useState } from "react";
+import { BrowserRouter, Routes, Route, Link } from "react-router-dom";
 
 const AFFILIATE_TAG = "pcbuilderguid-20";
+
+const DIRECT_PRODUCT_LINKS = {
+  // Add your real Amazon ASIN links here.
+  // Format:
+  // "Product Name": "ASIN",
+  // Example:
+  // "AMD Ryzen 9 7900X": "B0BBJ59WJ4",
+  // "AMD Ryzen 7 7800X3D": "B0BTZB7F88",
+};
 
 const PURPOSES = {
   home: "Home / Office / School",
@@ -340,8 +350,23 @@ function selectBuilds(candidates, purpose, budget, style) {
   return unique.slice(0, 3);
 }
 
-function getAffiliateUrl(query) {
-  return `https://www.amazon.com/s?k=${encodeURIComponent(query)}&tag=${AFFILIATE_TAG}&linkCode=ll2&ref_=as_li_ss_tl`;
+function getSearchAffiliateUrl(query) {
+  return `https://www.amazon.com/s?k=${encodeURIComponent(query)}&linkCode=ll2&tag=${encodeURIComponent(AFFILIATE_TAG)}&ref_=as_li_ss_tl`;
+}
+
+function getDirectProductUrl(productName) {
+  const asin = DIRECT_PRODUCT_LINKS[productName];
+
+  if (!asin) {
+    return getSearchAffiliateUrl(productName);
+  }
+
+  return `https://www.amazon.com/dp/${asin}?tag=${encodeURIComponent(AFFILIATE_TAG)}&linkCode=ll1&ref_=as_li_ss_tl`;
+}
+
+function getBuildShoppingUrl(build) {
+  const query = `${build.cpu.name} ${build.gpu.name} PC parts`;
+  return getSearchAffiliateUrl(query);
 }
 
 function getReason(tag, build, purpose) {
@@ -351,7 +376,267 @@ function getReason(tag, build, purpose) {
   return `This gives users a real second path instead of always showing the same CPU or GPU brand.`;
 }
 
-export default function App() {
+const SEO_ARTICLES = [
+  {
+    slug: "best-pc-build-under-800",
+    title: "Best PC Build Under $800 (2026 Guide)",
+    description: "A budget-friendly PC build for everyday use, esports, school, and light gaming without overspending.",
+    budget: "$800",
+    useCase: "Budget Gaming / Home Use",
+    cpu: "Intel Core i3-14100F or Ryzen 5 5600",
+    gpu: "Intel Arc B580 or RX 7600 XT",
+    ram: "16GB DDR4",
+    storage: "1TB NVMe SSD",
+    fps: ["1080p Esports: 120+ FPS", "1080p High Settings: 60–90 FPS"],
+    amazonQuery: "budget gaming pc parts under 800",
+  },
+  {
+    slug: "best-pc-build-under-1000",
+    title: "Best PC Build Under $1000 (2026 Guide)",
+    description: "A strong value PC build for 1080p gaming, school, home office, and entry-level content creation.",
+    budget: "$1000",
+    useCase: "1080p Gaming / Value PC",
+    cpu: "AMD Ryzen 5 7600 or Intel Core i5-12400F",
+    gpu: "RX 7700 XT or RTX 4060 Ti",
+    ram: "32GB DDR5",
+    storage: "1TB NVMe SSD",
+    fps: ["1080p Ultra: 100–160 FPS", "1440p Medium/High: 70–100 FPS"],
+    amazonQuery: "best gaming pc build under 1000",
+  },
+  {
+    slug: "best-pc-build-under-1200",
+    title: "Best PC Build Under $1200 (2026 Guide)",
+    description: "A balanced gaming PC build for high-refresh 1080p and entry-level 1440p gaming.",
+    budget: "$1200",
+    useCase: "1080p / 1440p Gaming",
+    cpu: "AMD Ryzen 5 7600",
+    gpu: "RX 7800 XT or RTX 4070 Super",
+    ram: "32GB DDR5",
+    storage: "1TB NVMe SSD",
+    fps: ["1080p Ultra: 160+ FPS", "1440p Ultra: 90–130 FPS"],
+    amazonQuery: "best gaming pc build under 1200",
+  },
+  {
+    slug: "best-pc-build-under-1500",
+    title: "Best PC Build Under $1500 (2026 Guide)",
+    description: "A powerful mid-range PC build for 1440p gaming, streaming, and future upgrades.",
+    budget: "$1500",
+    useCase: "1440p Gaming",
+    cpu: "AMD Ryzen 5 7600 or Ryzen 7 7800X3D",
+    gpu: "RTX 4070 Super or RX 7800 XT",
+    ram: "32GB DDR5",
+    storage: "1TB NVMe SSD",
+    fps: ["1440p Ultra: 100–140 FPS", "1080p Competitive: 200+ FPS"],
+    amazonQuery: "best pc build under 1500 RTX 4070 Super",
+  },
+  {
+    slug: "best-pc-build-under-2000",
+    title: "Best PC Build Under $2000 (2026 Guide)",
+    description: "A high-performance gaming PC build for 1440p ultra settings, streaming, and light creator workloads.",
+    budget: "$2000",
+    useCase: "High-End 1440p Gaming",
+    cpu: "Ryzen 7 7800X3D or Intel Core i7-14700K",
+    gpu: "RTX 4070 Ti Super or RX 7900 XT",
+    ram: "32GB DDR5",
+    storage: "2TB NVMe SSD",
+    fps: ["1440p Ultra: 140+ FPS", "4K High: 70–100 FPS"],
+    amazonQuery: "best gaming pc build under 2000",
+  },
+  {
+    slug: "best-pc-build-under-2500",
+    title: "Best PC Build Under $2500 (2026 Guide)",
+    description: "A premium PC build for serious 1440p gaming, 4K gaming, streaming, and creator performance.",
+    budget: "$2500",
+    useCase: "Premium Gaming / Streaming",
+    cpu: "Ryzen 9 7900X or Intel Core i9-14900K",
+    gpu: "RTX 4080 Super or RX 7900 XTX",
+    ram: "64GB DDR5",
+    storage: "2TB NVMe SSD",
+    fps: ["1440p Ultra: 160+ FPS", "4K Ultra: 90–120 FPS"],
+    amazonQuery: "best pc build under 2500 RTX 4080 Super",
+  },
+  {
+    slug: "best-pc-build-for-1440p-gaming",
+    title: "Best PC Build for 1440p Gaming (2026)",
+    description: "The best balanced PC build for smooth 1440p gaming with strong FPS and good upgrade potential.",
+    budget: "$1500–$2000",
+    useCase: "1440p Gaming",
+    cpu: "Ryzen 7 7800X3D",
+    gpu: "RTX 4070 Super or RX 7800 XT",
+    ram: "32GB DDR5",
+    storage: "1TB or 2TB NVMe SSD",
+    fps: ["Warzone 1440p: 120–160 FPS", "Fortnite 1440p: 180+ FPS", "Cyberpunk 1440p High: 80–110 FPS"],
+    amazonQuery: "best 1440p gaming pc parts",
+  },
+  {
+    slug: "best-pc-build-for-4k-gaming",
+    title: "Best PC Build for 4K Gaming (2026)",
+    description: "A high-end PC build for 4K gaming with strong GPU performance and future-proof components.",
+    budget: "$2500+",
+    useCase: "4K Gaming",
+    cpu: "Ryzen 9 7900X or Intel Core i9-14900K",
+    gpu: "RTX 4080 Super or RX 7900 XTX",
+    ram: "64GB DDR5",
+    storage: "2TB NVMe SSD",
+    fps: ["4K High: 90–120 FPS", "4K Ultra: 70–100 FPS"],
+    amazonQuery: "best 4k gaming pc build RTX 4080 Super",
+  },
+  {
+    slug: "best-pc-build-for-streaming",
+    title: "Best PC Build for Streaming and Gaming (2026)",
+    description: "A PC build optimized for gaming and streaming at the same time with strong CPU and GPU balance.",
+    budget: "$1800–$2500",
+    useCase: "Gaming + Streaming",
+    cpu: "Intel Core i7-14700K or Ryzen 9 7900X",
+    gpu: "RTX 4070 Ti Super or RTX 4080 Super",
+    ram: "32GB or 64GB DDR5",
+    storage: "2TB NVMe SSD",
+    fps: ["1440p Gaming: 120+ FPS", "Streaming: Smooth 1080p60"],
+    amazonQuery: "best streaming gaming pc build",
+  },
+  {
+    slug: "best-pc-build-for-video-editing",
+    title: "Best PC Build for Video Editing (2026)",
+    description: "A creator-focused PC build for editing, rendering, multitasking, and content production.",
+    budget: "$2000+",
+    useCase: "Video Editing / Creator Work",
+    cpu: "Intel Core i9-14900K or Ryzen 9 7950X3D",
+    gpu: "RTX 4070 Ti Super or RTX 4080 Super",
+    ram: "64GB DDR5",
+    storage: "2TB NVMe SSD",
+    fps: ["4K Editing: Smooth timeline performance", "Rendering: Strong multi-core performance"],
+    amazonQuery: "best video editing pc build parts",
+  },
+  {
+    slug: "best-pc-build-for-ai-machine-learning",
+    title: "Best PC Build for AI and Machine Learning (2026)",
+    description: "A workstation-style PC build for AI experiments, CUDA workloads, local models, and machine learning projects.",
+    budget: "$2500+",
+    useCase: "AI / CUDA / Machine Learning",
+    cpu: "Intel Core i9-14900K or Ryzen 9 7950X3D",
+    gpu: "RTX 4080 Super or RTX 4090",
+    ram: "64GB DDR5",
+    storage: "2TB NVMe SSD",
+    fps: ["AI workloads: GPU-focused", "Local models: More VRAM recommended"],
+    amazonQuery: "best AI machine learning pc build RTX 4090",
+  },
+  {
+    slug: "best-amd-gaming-pc-build",
+    title: "Best AMD Gaming PC Build (2026)",
+    description: "An all-AMD gaming PC build focused on strong raster performance, value, and high VRAM.",
+    budget: "$1500–$2500",
+    useCase: "AMD Gaming Build",
+    cpu: "Ryzen 7 7800X3D or Ryzen 9 7900X",
+    gpu: "RX 7800 XT, RX 7900 XT, or RX 7900 XTX",
+    ram: "32GB or 64GB DDR5",
+    storage: "1TB or 2TB NVMe SSD",
+    fps: ["1440p Ultra: 120+ FPS", "4K High: 70–110 FPS"],
+    amazonQuery: "best AMD gaming pc build RX 7900 XTX",
+  },
+  {
+    slug: "best-intel-gaming-pc-build",
+    title: "Best Intel Gaming PC Build (2026)",
+    description: "An Intel-based PC build for gaming, streaming, productivity, and users who prefer Intel CPUs.",
+    budget: "$1500–$2500",
+    useCase: "Intel Gaming Build",
+    cpu: "Intel Core i7-14700K or Intel Core i9-14900K",
+    gpu: "RTX 4070 Super, RTX 4070 Ti Super, or RTX 4080 Super",
+    ram: "32GB or 64GB DDR5",
+    storage: "2TB NVMe SSD",
+    fps: ["1440p Ultra: 120+ FPS", "Streaming: Strong CPU headroom"],
+    amazonQuery: "best Intel gaming pc build i7 14700K",
+  },
+];
+
+function getArticleBySlug(slug) {
+  return SEO_ARTICLES.find((article) => article.slug === slug);
+}
+
+function BlogIndex() {
+  return (
+    <div style={styles.blogPage}>
+      <h1 style={styles.blogTitle}>PC Build Guides</h1>
+      <p style={styles.blogLead}>Browse our latest PC build guides by budget, use case, and hardware preference.</p>
+      <div style={styles.blogGrid}>
+        {SEO_ARTICLES.map((article) => (
+          <Link key={article.slug} to={`/blog/${article.slug}`} style={styles.blogCard}>
+            <h2 style={styles.blogCardTitle}>{article.title}</h2>
+            <p style={styles.blogCardText}>{article.description}</p>
+            <span style={styles.blogCardMeta}>{article.budget} · {article.useCase}</span>
+          </Link>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function SeoArticle({ article }) {
+  if (!article) {
+    return (
+      <div style={styles.blogPage}>
+        <h1 style={styles.blogTitle}>Guide Not Found</h1>
+        <Link to="/blog" style={styles.blogButton}>Back to PC Build Guides</Link>
+      </div>
+    );
+  }
+
+  return (
+    <article style={styles.blogPage}>
+      <Link to="/blog" style={styles.blogBack}>← All PC Build Guides</Link>
+      <h1 style={styles.blogTitle}>{article.title}</h1>
+      <p style={styles.blogLead}>{article.description}</p>
+
+      <div style={styles.blogHeroBox}>
+        <div>
+          <div style={styles.blogLabel}>Recommended Budget</div>
+          <strong>{article.budget}</strong>
+        </div>
+        <div>
+          <div style={styles.blogLabel}>Best For</div>
+          <strong>{article.useCase}</strong>
+        </div>
+      </div>
+
+      <h2 style={styles.blogSectionTitle}>Recommended Build</h2>
+      <div style={styles.blogPartsGrid}>
+        <PartLine label="CPU" value={article.cpu} />
+        <PartLine label="GPU" value={article.gpu} />
+        <PartLine label="Memory" value={article.ram} />
+        <PartLine label="Storage" value={article.storage} />
+      </div>
+
+      <h2 style={styles.blogSectionTitle}>Expected Performance</h2>
+      <ul style={styles.blogList}>
+        {article.fps.map((item) => <li key={item}>{item}</li>)}
+      </ul>
+
+      <h2 style={styles.blogSectionTitle}>Why This Build Makes Sense</h2>
+      <p style={styles.blogParagraph}>
+        This build is designed to balance performance, price, and upgrade potential. Instead of blindly choosing the most expensive parts, it focuses on the components that matter most for {article.useCase.toLowerCase()}.
+      </p>
+
+      <div style={styles.blogCtaBox}>
+        <h2 style={styles.blogCtaTitle}>Want a custom version?</h2>
+        <p style={styles.blogParagraph}>Use our PC Builder to generate a full parts list based on your exact budget and preferred style.</p>
+        <div style={styles.blogActions}>
+          <Link to="/" style={styles.blogButton}>Use PC Builder</Link>
+          <a href={getSearchAffiliateUrl(article.amazonQuery)} target="_blank" rel="noreferrer nofollow sponsored" style={styles.blogAmazonButton}>Check Prices on Amazon</a>
+        </div>
+      </div>
+    </article>
+  );
+}
+
+function PartLine({ label, value }) {
+  return (
+    <div style={styles.blogPartCard}>
+      <div style={styles.blogLabel}>{label}</div>
+      <strong>{value}</strong>
+    </div>
+  );
+}
+
+function Home() {
   const [budget, setBudget] = useState(1500);
   const [purpose, setPurpose] = useState("gaming1440p");
   const [style, setStyle] = useState("balanced");
@@ -419,6 +704,23 @@ export default function App() {
   );
 }
 
+function App() {
+  return (
+    <BrowserRouter>
+      <Routes>
+        <Route path="/" element={<Home />} />
+        <Route path="/blog" element={<BlogIndex />} />
+        {SEO_ARTICLES.map((article) => (
+          <Route key={article.slug} path={`/blog/${article.slug}`} element={<SeoArticle article={article} />} />
+        ))}
+        <Route path="*" element={<Home />} />
+      </Routes>
+    </BrowserRouter>
+  );
+}
+
+export default App;
+
 function Summary({ label, value }) {
   return (
     <div style={styles.summaryCard}>
@@ -442,7 +744,6 @@ function BuildCard({ item, index, purpose }) {
     ["Cooler", build.cooler.name, "Cooling", build.cooler.price],
   ];
 
-  const shopQuery = `${build.cpu.name} ${build.gpu.name} PC build`;
 
   return (
     <article style={styles.buildCard}>
@@ -461,8 +762,8 @@ function BuildCard({ item, index, purpose }) {
       <div style={styles.reason}>{getReason(tag, build, purpose)}</div>
 
       <div style={styles.actionsTop}>
-        <a style={styles.primaryLink} href={getAffiliateUrl(shopQuery)} target="_blank" rel="noreferrer nofollow sponsored">Shop Full Build</a>
-        <a style={styles.secondaryLink} href={getAffiliateUrl(`${build.gpu.name}`)} target="_blank" rel="noreferrer nofollow sponsored">Best GPU Deal</a>
+        <a style={styles.primaryLink} href={getBuildShoppingUrl(build)} target="_blank" rel="noreferrer nofollow sponsored">Shop Full Build</a>
+        <a style={styles.secondaryLink} href={getDirectProductUrl(build.gpu.name)} target="_blank" rel="noreferrer nofollow sponsored">Best GPU Deal</a>
       </div>
 
       <div style={styles.partsGrid}>
@@ -473,7 +774,7 @@ function BuildCard({ item, index, purpose }) {
               <div style={styles.partName}>{name}</div>
               <div style={styles.partMeta}>{meta} · ${price}</div>
             </div>
-            <a style={styles.partLink} href={getAffiliateUrl(name)} target="_blank" rel="noreferrer nofollow sponsored">Shop</a>
+            <a style={styles.partLink} href={getDirectProductUrl(name)} target="_blank" rel="noreferrer nofollow sponsored">Shop</a>
           </div>
         ))}
       </div>
@@ -521,4 +822,25 @@ const styles = {
   partMeta: { color: "#94a3b8", fontSize: "13px" },
   partLink: { textDecoration: "none", padding: "8px 10px", borderRadius: "10px", background: "rgba(249, 115, 22, 0.14)", color: "#fdba74", border: "1px solid rgba(249, 115, 22, 0.35)", fontSize: "13px", fontWeight: 900, whiteSpace: "nowrap" },
   empty: { background: "#111827", border: "1px solid #243041", borderRadius: "20px", padding: "22px", color: "#cbd5e1" },
+  blogPage: { minHeight: "100vh", background: "#f8fafc", color: "#0f172a", fontFamily: "Inter, Arial, sans-serif", maxWidth: "980px", margin: "0 auto", padding: "48px 22px 80px" },
+  blogTitle: { fontSize: "42px", lineHeight: 1.1, letterSpacing: "-1px", margin: "10px 0 14px", color: "#0f172a" },
+  blogLead: { fontSize: "18px", lineHeight: 1.7, color: "#475569", margin: "0 0 26px" },
+  blogBack: { display: "inline-block", color: "#2563eb", textDecoration: "none", fontWeight: 800, marginBottom: "12px" },
+  blogHeroBox: { display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: "14px", background: "#ffffff", border: "1px solid #e2e8f0", borderRadius: "18px", padding: "18px", margin: "24px 0" },
+  blogLabel: { color: "#64748b", fontSize: "12px", fontWeight: 900, textTransform: "uppercase", letterSpacing: "0.6px", marginBottom: "6px" },
+  blogSectionTitle: { fontSize: "26px", margin: "30px 0 14px", color: "#0f172a" },
+  blogPartsGrid: { display: "grid", gridTemplateColumns: "repeat(2, minmax(0, 1fr))", gap: "14px" },
+  blogPartCard: { background: "#ffffff", border: "1px solid #e2e8f0", borderRadius: "16px", padding: "16px" },
+  blogList: { fontSize: "17px", lineHeight: 1.8, color: "#334155" },
+  blogParagraph: { fontSize: "17px", lineHeight: 1.8, color: "#334155" },
+  blogCtaBox: { background: "#0f172a", color: "#e5e7eb", borderRadius: "22px", padding: "24px", marginTop: "34px" },
+  blogCtaTitle: { color: "#ffffff", margin: "0 0 8px", fontSize: "26px" },
+  blogActions: { display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: "12px", marginTop: "18px" },
+  blogButton: { display: "inline-flex", alignItems: "center", justifyContent: "center", background: "#2563eb", color: "#ffffff", textDecoration: "none", padding: "13px 16px", borderRadius: "12px", fontWeight: 900 },
+  blogAmazonButton: { display: "inline-flex", alignItems: "center", justifyContent: "center", background: "#f97316", color: "#ffffff", textDecoration: "none", padding: "13px 16px", borderRadius: "12px", fontWeight: 900 },
+  blogGrid: { display: "grid", gridTemplateColumns: "repeat(2, minmax(0, 1fr))", gap: "16px", marginTop: "24px" },
+  blogCard: { display: "block", background: "#ffffff", border: "1px solid #e2e8f0", borderRadius: "18px", padding: "18px", textDecoration: "none", color: "#0f172a" },
+  blogCardTitle: { fontSize: "20px", margin: "0 0 8px", color: "#0f172a" },
+  blogCardText: { color: "#475569", lineHeight: 1.6, margin: "0 0 12px" },
+  blogCardMeta: { color: "#2563eb", fontWeight: 900, fontSize: "13px" },
 };
