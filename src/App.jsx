@@ -712,6 +712,26 @@ function Home() {
           )}
         </section>
       </main>
+
+      <section style={styles.homeGuidesSection}>
+        <div style={styles.homeGuidesHeader}>
+          <div>
+            <div style={styles.kicker}>PC Build Guides</div>
+            <h2 style={styles.homeGuidesTitle}>Popular PC Build Guides</h2>
+            <p style={styles.homeGuidesText}>Browse budget guides, gaming builds, streaming builds, and creator workstations.</p>
+          </div>
+          <a href="/blog" style={styles.homeGuidesButton}>View All Guides</a>
+        </div>
+
+        <div style={styles.homeGuidesGrid}>
+          {SEO_ARTICLES.slice(0, 8).map((article) => (
+            <a key={article.slug} href={`/blog/${article.slug}`} style={styles.homeGuideCard}>
+              <div style={styles.homeGuideTitle}>{article.title}</div>
+              <div style={styles.homeGuideMeta}>{article.budget} · {article.useCase}</div>
+            </a>
+          ))}
+        </div>
+      </section>
     </div>
   );
 }
@@ -841,6 +861,15 @@ const styles = {
   partMeta: { color: "#94a3b8", fontSize: "13px" },
   partLink: { textDecoration: "none", padding: "8px 10px", borderRadius: "10px", background: "rgba(249, 115, 22, 0.14)", color: "#fdba74", border: "1px solid rgba(249, 115, 22, 0.35)", fontSize: "13px", fontWeight: 900, whiteSpace: "nowrap" },
   empty: { background: "#111827", border: "1px solid #243041", borderRadius: "20px", padding: "22px", color: "#cbd5e1" },
+  homeGuidesSection: { maxWidth: "1200px", margin: "36px auto 0", padding: "24px", background: "#111827", border: "1px solid #243041", borderRadius: "22px", boxShadow: "0 20px 50px rgba(0,0,0,0.25)" },
+  homeGuidesHeader: { display: "flex", justifyContent: "space-between", gap: "18px", alignItems: "center", marginBottom: "20px" },
+  homeGuidesTitle: { margin: "8px 0 6px", color: "#ffffff", fontSize: "28px", letterSpacing: "-0.6px" },
+  homeGuidesText: { margin: 0, color: "#94a3b8", fontSize: "15px" },
+  homeGuidesButton: { display: "inline-flex", alignItems: "center", justifyContent: "center", padding: "12px 16px", borderRadius: "12px", background: "#0ea5e9", color: "#ffffff", textDecoration: "none", fontWeight: 900, whiteSpace: "nowrap" },
+  homeGuidesGrid: { display: "grid", gridTemplateColumns: "repeat(4, minmax(0, 1fr))", gap: "14px" },
+  homeGuideCard: { display: "block", padding: "16px", background: "#020617", border: "1px solid #243041", borderRadius: "16px", textDecoration: "none" },
+  homeGuideTitle: { color: "#ffffff", fontWeight: 900, lineHeight: 1.35, marginBottom: "8px" },
+  homeGuideMeta: { color: "#7dd3fc", fontSize: "13px", fontWeight: 800 },
   blogPage: { minHeight: "100vh", background: "#f8fafc", color: "#0f172a", fontFamily: "Inter, Arial, sans-serif", maxWidth: "980px", margin: "0 auto", padding: "48px 22px 80px" },
   blogTitle: { fontSize: "42px", lineHeight: 1.1, letterSpacing: "-1px", margin: "10px 0 14px", color: "#0f172a" },
   blogLead: { fontSize: "18px", lineHeight: 1.7, color: "#475569", margin: "0 0 26px" },
@@ -862,4 +891,5 @@ const styles = {
   blogCardTitle: { fontSize: "20px", margin: "0 0 8px", color: "#0f172a" },
   blogCardText: { color: "#475569", lineHeight: 1.6, margin: "0 0 12px" },
   blogCardMeta: { color: "#2563eb", fontWeight: 900, fontSize: "13px" },
+};
 };
