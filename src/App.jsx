@@ -1,5 +1,7 @@
 import React, { useMemo, useState } from "react";
 
+const AFFILIATE_TAG = "yourtag-20";
+
 const PURPOSES = {
   home: "Home / Office / School",
   esports: "Esports Gaming",
@@ -238,24 +240,14 @@ function selectBuilds(candidates, purpose, budget, style) {
   return unique.slice(0, 3);
 }
 
-function getAffiliateUrl(query, tag) {
-  const affiliateTag = encodeURIComponent(tag || "yourtag-20");
-  return `https://www.amazon.com/s?k=${encodeURIComponent(query)}&tag=${affiliateTag}`;
+function getAffiliateUrl(query) {
+  return `https://www.amazon.com/s?k=${encodeURIComponent(query)}&tag=${encodeURIComponent(AFFILIATE_TAG)}`;
 }
 
 function getReason(tag, build, purpose) {
-  if (tag === "Best Performance") {
-    return `This option uses more of the budget for raw performance, centered around the ${build.gpu.name} and ${build.cpu.name}.`;
-  }
-
-  if (tag === "Best Value") {
-    return `This option focuses on price-to-performance, avoiding unnecessary overspending while still matching the selected use case.`;
-  }
-
-  if (purpose === "ai") {
-    return `This is the closest alternative path while still keeping AI and workstation needs in mind.`;
-  }
-
+  if (tag === "Best Performance") return `This option uses more of the budget for raw performance, centered around the ${build.gpu.name} and ${build.cpu.name}.`;
+  if (tag === "Best Value") return `This option focuses on price-to-performance, avoiding unnecessary overspending while still matching the selected use case.`;
+  if (purpose === "ai") return `This is the closest alternative path while still keeping AI and workstation needs in mind.`;
   return `This gives users a real second path instead of always showing the same CPU or GPU brand.`;
 }
 
@@ -263,15 +255,10 @@ export default function App() {
   const [budget, setBudget] = useState(1500);
   const [purpose, setPurpose] = useState("gaming1440p");
   const [style, setStyle] = useState("balanced");
-  const [affiliateTag, setAffiliateTag] = useState("yourtag-20");
 
   const builds = useMemo(() => {
     let candidates = generateCandidates(budget, purpose, style);
-
-    if (!candidates.length && style !== "balanced") {
-      candidates = generateCandidates(budget, purpose, "balanced");
-    }
-
+    if (!candidates.length && style !== "balanced") candidates = generateCandidates(budget, purpose, "balanced");
     return selectBuilds(candidates, purpose, budget, style);
   }, [budget, purpose, style]);
 
@@ -280,9 +267,7 @@ export default function App() {
       <section style={styles.hero}>
         <div style={styles.kicker}>AI PC Builder</div>
         <h1 style={styles.title}>Find the right PC build for your budget.</h1>
-        <p style={styles.subtitle}>
-          Compare performance, value, and alternative build paths without locking every recommendation into the same brand.
-        </p>
+        <p style={styles.subtitle}>Get three smart build options: performance, value, and an alternative brand path.</p>
       </section>
 
       <main style={styles.layout}>
@@ -292,15 +277,7 @@ export default function App() {
           <div style={styles.field}>
             <label style={styles.label}>Budget</label>
             <div style={styles.budgetRow}>
-              <input
-                style={styles.range}
-                type="range"
-                min="600"
-                max="5000"
-                step="100"
-                value={budget}
-                onChange={(e) => setBudget(Number(e.target.value))}
-              />
+              <input style={styles.range} type="range" min="600" max="5000" step="100" value={budget} onChange={(e) => setBudget(Number(e.target.value))} />
               <div style={styles.budgetBox}>${budget}</div>
             </div>
           </div>
@@ -308,34 +285,20 @@ export default function App() {
           <div style={styles.field}>
             <label style={styles.label}>Main Use</label>
             <select style={styles.select} value={purpose} onChange={(e) => setPurpose(e.target.value)}>
-              {Object.entries(PURPOSES).map(([key, label]) => (
-                <option key={key} value={key}>{label}</option>
-              ))}
+              {Object.entries(PURPOSES).map(([key, label]) => <option key={key} value={key}>{label}</option>)}
             </select>
           </div>
 
           <div style={styles.field}>
             <label style={styles.label}>Preferred Style</label>
             <select style={styles.select} value={style} onChange={(e) => setStyle(e.target.value)}>
-              {Object.entries(STYLES).map(([key, label]) => (
-                <option key={key} value={key}>{label}</option>
-              ))}
+              {Object.entries(STYLES).map(([key, label]) => <option key={key} value={key}>{label}</option>)}
             </select>
           </div>
 
-          <div style={styles.field}>
-            <label style={styles.label}>Amazon Affiliate Tag</label>
-            <input
-              style={styles.input}
-              value={affiliateTag}
-              onChange={(e) => setAffiliateTag(e.target.value)}
-              placeholder="yourtag-20"
-            />
-          </div>
+          <button style={styles.generateButton}>Recommendations update automatically</button>
 
-          <div style={styles.tip}>
-            Replace the default tag with your real Amazon Associates tag. Later you can add Newegg, Best Buy, Micro Center, or custom sponsored links.
-          </div>
+          <div style={styles.tip}>Affiliate links are built into each shopping button. Users only see clean product recommendations.</div>
         </aside>
 
         <section style={styles.results}>
@@ -348,9 +311,7 @@ export default function App() {
           {builds.length === 0 ? (
             <div style={styles.empty}>No valid build found. Try increasing the budget or switching to Balanced mode.</div>
           ) : (
-            builds.map((item, index) => (
-              <BuildCard key={`${item.tag}-${item.build.cpu.name}-${item.build.gpu.name}`} item={item} index={index} purpose={purpose} affiliateTag={affiliateTag} />
-            ))
+            builds.map((item, index) => <BuildCard key={`${item.tag}-${item.build.cpu.name}-${item.build.gpu.name}`} item={item} index={index} purpose={purpose} />)
           )}
         </section>
       </main>
@@ -367,7 +328,7 @@ function Summary({ label, value }) {
   );
 }
 
-function BuildCard({ item, index, purpose, affiliateTag }) {
+function BuildCard({ item, index, purpose }) {
   const { tag, build } = item;
 
   const list = [
@@ -382,7 +343,6 @@ function BuildCard({ item, index, purpose, affiliateTag }) {
   ];
 
   const shopQuery = `${build.cpu.name} ${build.gpu.name} PC build`;
-  const compareQuery = `${build.cpu.name} ${build.gpu.name}`;
 
   return (
     <article style={styles.buildCard}>
@@ -398,289 +358,67 @@ function BuildCard({ item, index, purpose, affiliateTag }) {
         </div>
       </div>
 
+      <div style={styles.reason}>{getReason(tag, build, purpose)}</div>
+
+      <div style={styles.actionsTop}>
+        <a style={styles.primaryLink} href={getAffiliateUrl(shopQuery)} target="_blank" rel="noreferrer nofollow sponsored">Shop Full Build</a>
+        <a style={styles.secondaryLink} href={getAffiliateUrl(`${build.gpu.name}`)} target="_blank" rel="noreferrer nofollow sponsored">Best GPU Deal</a>
+      </div>
+
       <div style={styles.partsGrid}>
         {list.map(([type, name, meta, price]) => (
           <div key={`${type}-${name}`} style={styles.partCard}>
-            <div style={styles.partType}>{type}</div>
-            <div style={styles.partName}>{name}</div>
-            <div style={styles.partMeta}>{meta} · ${price}</div>
+            <div>
+              <div style={styles.partType}>{type}</div>
+              <div style={styles.partName}>{name}</div>
+              <div style={styles.partMeta}>{meta} · ${price}</div>
+            </div>
+            <a style={styles.partLink} href={getAffiliateUrl(name)} target="_blank" rel="noreferrer nofollow sponsored">Shop</a>
           </div>
         ))}
-      </div>
-
-      <div style={styles.reason}>{getReason(tag, build, purpose)}</div>
-
-      <div style={styles.actions}>
-        <a style={styles.primaryLink} href={getAffiliateUrl(shopQuery, affiliateTag)} target="_blank" rel="noreferrer nofollow sponsored">
-          Shop Build Parts
-        </a>
-        <a style={styles.secondaryLink} href={getAffiliateUrl(compareQuery, affiliateTag)} target="_blank" rel="noreferrer nofollow sponsored">
-          Compare Prices
-        </a>
       </div>
     </article>
   );
 }
 
 const styles = {
-  page: {
-    minHeight: "100vh",
-    background: "#0f172a",
-    color: "#e5e7eb",
-    fontFamily: "Inter, Arial, sans-serif",
-    padding: "32px 20px 60px",
-  },
-  hero: {
-    maxWidth: "980px",
-    margin: "0 auto 28px",
-    textAlign: "center",
-  },
-  kicker: {
-    display: "inline-block",
-    padding: "7px 12px",
-    borderRadius: "999px",
-    background: "rgba(37, 99, 235, 0.16)",
-    color: "#93c5fd",
-    fontSize: "13px",
-    fontWeight: 900,
-    marginBottom: "12px",
-  },
-  title: {
-    margin: 0,
-    color: "#ffffff",
-    fontSize: "48px",
-    lineHeight: 1.05,
-    letterSpacing: "-1.5px",
-  },
-  subtitle: {
-    maxWidth: "760px",
-    margin: "14px auto 0",
-    color: "#cbd5e1",
-    fontSize: "18px",
-  },
-  layout: {
-    maxWidth: "1200px",
-    margin: "0 auto",
-    display: "grid",
-    gridTemplateColumns: "360px 1fr",
-    gap: "24px",
-    alignItems: "start",
-  },
-  panel: {
-    background: "#111827",
-    border: "1px solid #243041",
-    borderRadius: "20px",
-    padding: "22px",
-    position: "sticky",
-    top: "20px",
-    boxShadow: "0 20px 50px rgba(0,0,0,0.25)",
-  },
-  panelTitle: {
-    margin: "0 0 18px",
-    color: "#ffffff",
-    fontSize: "22px",
-  },
-  field: {
-    marginBottom: "18px",
-  },
-  label: {
-    display: "block",
-    color: "#94a3b8",
-    fontSize: "12px",
-    fontWeight: 800,
-    textTransform: "uppercase",
-    letterSpacing: "0.5px",
-    marginBottom: "8px",
-  },
-  budgetRow: {
-    display: "grid",
-    gridTemplateColumns: "1fr 90px",
-    gap: "10px",
-    alignItems: "center",
-  },
-  budgetBox: {
-    background: "#020617",
-    border: "1px solid #334155",
-    color: "#93c5fd",
-    borderRadius: "12px",
-    padding: "10px",
-    textAlign: "center",
-    fontWeight: 900,
-  },
-  range: {
-    width: "100%",
-  },
-  select: {
-    width: "100%",
-    padding: "12px 14px",
-    borderRadius: "12px",
-    border: "1px solid #334155",
-    background: "#020617",
-    color: "#ffffff",
-    fontSize: "15px",
-    outline: "none",
-  },
-  input: {
-    width: "100%",
-    padding: "12px 14px",
-    borderRadius: "12px",
-    border: "1px solid #334155",
-    background: "#020617",
-    color: "#ffffff",
-    fontSize: "15px",
-    outline: "none",
-  },
-  tip: {
-    background: "rgba(56, 189, 248, 0.09)",
-    border: "1px solid rgba(56, 189, 248, 0.25)",
-    color: "#cbd5e1",
-    borderRadius: "14px",
-    padding: "14px",
-    fontSize: "13px",
-  },
-  results: {
-    display: "grid",
-    gap: "20px",
-  },
-  summaryGrid: {
-    display: "grid",
-    gridTemplateColumns: "repeat(3, 1fr)",
-    gap: "14px",
-  },
-  summaryCard: {
-    background: "#111827",
-    border: "1px solid #243041",
-    borderRadius: "18px",
-    padding: "16px",
-  },
-  summaryLabel: {
-    color: "#94a3b8",
-    fontSize: "13px",
-    marginBottom: "4px",
-  },
-  summaryValue: {
-    color: "#ffffff",
-    fontSize: "18px",
-    fontWeight: 900,
-  },
-  buildCard: {
-    background: "#111827",
-    border: "1px solid #243041",
-    borderRadius: "20px",
-    padding: "22px",
-    boxShadow: "0 20px 50px rgba(0,0,0,0.25)",
-  },
-  resultHeader: {
-    display: "flex",
-    justifyContent: "space-between",
-    gap: "18px",
-    alignItems: "flex-start",
-    marginBottom: "18px",
-  },
-  badge: {
-    display: "inline-flex",
-    padding: "6px 10px",
-    borderRadius: "999px",
-    background: "rgba(56, 189, 248, 0.12)",
-    color: "#7dd3fc",
-    border: "1px solid rgba(56, 189, 248, 0.35)",
-    fontSize: "12px",
-    fontWeight: 900,
-    marginBottom: "8px",
-  },
-  buildTitle: {
-    margin: 0,
-    color: "#ffffff",
-    fontSize: "24px",
-  },
-  smallText: {
-    margin: "5px 0 0",
-    color: "#94a3b8",
-    fontSize: "14px",
-  },
-  totalBox: {
-    background: "#020617",
-    border: "1px solid #334155",
-    borderRadius: "16px",
-    padding: "14px 18px",
-    textAlign: "center",
-    minWidth: "150px",
-  },
-  total: {
-    color: "#86efac",
-    fontSize: "25px",
-    fontWeight: 900,
-  },
-  partsGrid: {
-    display: "grid",
-    gridTemplateColumns: "repeat(2, minmax(0, 1fr))",
-    gap: "14px",
-    marginBottom: "16px",
-  },
-  partCard: {
-    background: "#020617",
-    border: "1px solid #243041",
-    borderRadius: "16px",
-    padding: "16px",
-  },
-  partType: {
-    color: "#94a3b8",
-    fontSize: "12px",
-    fontWeight: 800,
-    textTransform: "uppercase",
-    letterSpacing: "0.5px",
-    marginBottom: "6px",
-  },
-  partName: {
-    color: "#ffffff",
-    fontWeight: 900,
-    marginBottom: "5px",
-  },
-  partMeta: {
-    color: "#94a3b8",
-    fontSize: "13px",
-  },
-  reason: {
-    background: "rgba(99, 102, 241, 0.1)",
-    border: "1px solid rgba(99, 102, 241, 0.3)",
-    color: "#cbd5e1",
-    borderRadius: "14px",
-    padding: "14px",
-    marginBottom: "16px",
-  },
-  actions: {
-    display: "grid",
-    gridTemplateColumns: "repeat(2, 1fr)",
-    gap: "12px",
-  },
-  primaryLink: {
-    display: "inline-flex",
-    justifyContent: "center",
-    alignItems: "center",
-    textDecoration: "none",
-    padding: "13px 14px",
-    borderRadius: "12px",
-    background: "#f97316",
-    color: "#ffffff",
-    fontWeight: 900,
-  },
-  secondaryLink: {
-    display: "inline-flex",
-    justifyContent: "center",
-    alignItems: "center",
-    textDecoration: "none",
-    padding: "13px 14px",
-    borderRadius: "12px",
-    background: "#020617",
-    border: "1px solid #334155",
-    color: "#cbd5e1",
-    fontWeight: 900,
-  },
-  empty: {
-    background: "#111827",
-    border: "1px solid #243041",
-    borderRadius: "20px",
-    padding: "22px",
-    color: "#cbd5e1",
-  },
+  page: { minHeight: "100vh", background: "#0f172a", color: "#e5e7eb", fontFamily: "Inter, Arial, sans-serif", padding: "32px 20px 60px" },
+  hero: { maxWidth: "980px", margin: "0 auto 28px", textAlign: "center" },
+  kicker: { display: "inline-block", padding: "7px 12px", borderRadius: "999px", background: "rgba(37, 99, 235, 0.16)", color: "#93c5fd", fontSize: "13px", fontWeight: 900, marginBottom: "12px" },
+  title: { margin: 0, color: "#ffffff", fontSize: "48px", lineHeight: 1.05, letterSpacing: "-1.5px" },
+  subtitle: { maxWidth: "760px", margin: "14px auto 0", color: "#cbd5e1", fontSize: "18px" },
+  layout: { maxWidth: "1200px", margin: "0 auto", display: "grid", gridTemplateColumns: "360px 1fr", gap: "24px", alignItems: "start" },
+  panel: { background: "#111827", border: "1px solid #243041", borderRadius: "20px", padding: "22px", position: "sticky", top: "20px", boxShadow: "0 20px 50px rgba(0,0,0,0.25)" },
+  panelTitle: { margin: "0 0 18px", color: "#ffffff", fontSize: "22px" },
+  field: { marginBottom: "18px" },
+  label: { display: "block", color: "#94a3b8", fontSize: "12px", fontWeight: 800, textTransform: "uppercase", letterSpacing: "0.5px", marginBottom: "8px" },
+  budgetRow: { display: "grid", gridTemplateColumns: "1fr 90px", gap: "10px", alignItems: "center" },
+  budgetBox: { background: "#020617", border: "1px solid #334155", color: "#93c5fd", borderRadius: "12px", padding: "10px", textAlign: "center", fontWeight: 900 },
+  range: { width: "100%" },
+  select: { width: "100%", padding: "12px 14px", borderRadius: "12px", border: "1px solid #334155", background: "#020617", color: "#ffffff", fontSize: "15px", outline: "none" },
+  generateButton: { marginTop: "4px", width: "100%", padding: "14px", borderRadius: "14px", border: "none", background: "linear-gradient(135deg, #2563eb, #7c3aed)", color: "#ffffff", fontSize: "15px", fontWeight: 900 },
+  tip: { marginTop: "14px", background: "rgba(56, 189, 248, 0.09)", border: "1px solid rgba(56, 189, 248, 0.25)", color: "#cbd5e1", borderRadius: "14px", padding: "14px", fontSize: "13px" },
+  results: { display: "grid", gap: "20px" },
+  summaryGrid: { display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "14px" },
+  summaryCard: { background: "#111827", border: "1px solid #243041", borderRadius: "18px", padding: "16px" },
+  summaryLabel: { color: "#94a3b8", fontSize: "13px", marginBottom: "4px" },
+  summaryValue: { color: "#ffffff", fontSize: "18px", fontWeight: 900 },
+  buildCard: { background: "#111827", border: "1px solid #243041", borderRadius: "20px", padding: "22px", boxShadow: "0 20px 50px rgba(0,0,0,0.25)" },
+  resultHeader: { display: "flex", justifyContent: "space-between", gap: "18px", alignItems: "flex-start", marginBottom: "16px" },
+  badge: { display: "inline-flex", padding: "6px 10px", borderRadius: "999px", background: "rgba(56, 189, 248, 0.12)", color: "#7dd3fc", border: "1px solid rgba(56, 189, 248, 0.35)", fontSize: "12px", fontWeight: 900, marginBottom: "8px" },
+  buildTitle: { margin: 0, color: "#ffffff", fontSize: "24px" },
+  smallText: { margin: "5px 0 0", color: "#94a3b8", fontSize: "14px" },
+  totalBox: { background: "#020617", border: "1px solid #334155", borderRadius: "16px", padding: "14px 18px", textAlign: "center", minWidth: "150px" },
+  total: { color: "#86efac", fontSize: "25px", fontWeight: 900 },
+  reason: { background: "rgba(99, 102, 241, 0.1)", border: "1px solid rgba(99, 102, 241, 0.3)", color: "#cbd5e1", borderRadius: "14px", padding: "14px", marginBottom: "16px" },
+  actionsTop: { display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: "12px", marginBottom: "16px" },
+  primaryLink: { display: "inline-flex", justifyContent: "center", alignItems: "center", textDecoration: "none", padding: "13px 14px", borderRadius: "12px", background: "#f97316", color: "#ffffff", fontWeight: 900 },
+  secondaryLink: { display: "inline-flex", justifyContent: "center", alignItems: "center", textDecoration: "none", padding: "13px 14px", borderRadius: "12px", background: "#020617", border: "1px solid #334155", color: "#cbd5e1", fontWeight: 900 },
+  partsGrid: { display: "grid", gridTemplateColumns: "repeat(2, minmax(0, 1fr))", gap: "14px" },
+  partCard: { background: "#020617", border: "1px solid #243041", borderRadius: "16px", padding: "16px", display: "flex", justifyContent: "space-between", gap: "12px", alignItems: "center" },
+  partType: { color: "#94a3b8", fontSize: "12px", fontWeight: 800, textTransform: "uppercase", letterSpacing: "0.5px", marginBottom: "6px" },
+  partName: { color: "#ffffff", fontWeight: 900, marginBottom: "5px" },
+  partMeta: { color: "#94a3b8", fontSize: "13px" },
+  partLink: { textDecoration: "none", padding: "8px 10px", borderRadius: "10px", background: "rgba(249, 115, 22, 0.14)", color: "#fdba74", border: "1px solid rgba(249, 115, 22, 0.35)", fontSize: "13px", fontWeight: 900, whiteSpace: "nowrap" },
+  empty: { background: "#111827", border: "1px solid #243041", borderRadius: "20px", padding: "22px", color: "#cbd5e1" },
 };
