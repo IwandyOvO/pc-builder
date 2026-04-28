@@ -1,6 +1,6 @@
 import React, { useMemo, useState } from "react";
 
-const AFFILIATE_TAG = "yourtag-20";
+const AFFILIATE_TAG = "pcbuilderguid-20";
 
 const PURPOSES = {
   home: "Home / Office / School",
@@ -341,7 +341,7 @@ function selectBuilds(candidates, purpose, budget, style) {
 }
 
 function getAffiliateUrl(query) {
-  return `https://www.amazon.com/s?k=${encodeURIComponent(query)}&tag=${encodeURIComponent(AFFILIATE_TAG)}`;
+  return `https://www.amazon.com/s?k=${encodeURIComponent(query)}&tag=${AFFILIATE_TAG}&linkCode=ll2&ref_=as_li_ss_tl`;
 }
 
 function getReason(tag, build, purpose) {
