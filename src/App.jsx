@@ -379,7 +379,7 @@ function getReason(tag, build, purpose) {
 const SEO_ARTICLES = [
   {
     slug: "best-pc-build-under-800",
-    title: "Best PC Build Under $800 (2026 Guide)",
+    title: "Best PC Build Under $800 (Guide 2026)",
     description: "A budget-friendly PC build for everyday use, esports, school, and light gaming without overspending.",
     budget: "$800",
     useCase: "Budget Gaming / Home Use",
